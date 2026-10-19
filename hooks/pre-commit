@@ -106,15 +106,25 @@ set_badge README.md 'version' "$(read_badge README.md 'version')" "$version"
 
 # ---------------------------------------------------------------------- changelog links
 
-# Every reference definition in the changelog has to name a version that has actually been tagged.
-# The definitions are written by hooks/post-commit and only for tagged versions, so this is cheap and
-# it is the check that keeps the changelog from growing links to releases nobody published.
+# Every reference definition in the changelog has to name a version that is published or pending.
+# Definitions are written by hooks/post-commit: a published version because its tag exists, the newest
+# version because the release is made by CI from the next push. Anything else - a link to a version
+# that was never released, typed by hand - is a lie in the document people trust to say what shipped,
+# and it cannot be repaired without knowing which version was meant. So that one refuses.
+newest_version=$(grep -a -o '^## \[[0-9][^]]*\]' CHANGELOG.md \
+    | head -1 \
+    | sed 's/^## \[//; s/\]$//')
+
 for linked in $(grep -a -o '^\[[0-9][^]]*\]:' CHANGELOG.md | sed 's/^\[//; s/\]:$//'); do
+    if [ "$linked" = "$newest_version" ]; then
+        continue
+    fi
+
     if ! git rev-parse -q --verify "refs/tags/v$linked" > /dev/null 2>&1; then
         echo "[ERROR] CHANGELOG.md links version $linked, but there is no v$linked tag."
         echo "        Either the release never happened, or the link was written by hand."
-        echo "        post-commit writes these links only for tagged versions; delete the definition"
-        echo "        and post-commit will restore it when the tag exists."
+        echo "        post-commit links a version once it is tagged; delete the definition and"
+        echo "        post-commit will restore it when the tag exists."
         exit 1
     fi
 done

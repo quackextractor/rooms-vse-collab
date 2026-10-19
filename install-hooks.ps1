@@ -10,18 +10,16 @@
     Two hooks, with deliberately different authority.
 
       pre-commit - syncs the README version badge to CHANGELOG.md, refuses a changelog link naming a
-        version that was never tagged, then runs `scripts/build.sh` and `scripts/smoke.sh`. Corrects
-        the badge and re-stages it rather than refusing; refuses everything else. Aborts the commit.
+        version that was never published, then runs `scripts/build.sh` and `scripts/smoke.sh`.
+        Corrects the badge and re-stages it rather than refusing; refuses everything else. Aborts the
+        commit.
 
-      post-commit - publishes a release: tags HEAD as v<version> when CHANGELOG.md names a version
-        that has no tag yet, pushes that tag once the commit is on the remote, creates the GitHub
-        release with `gh`, and rewrites the changelog's reference links to match the tags that
-        actually exist. It cannot refuse anything - the commit already exists - so the release half
-        only ever *adds* a tag and never moves one, and the link rewrite is its own commit so it
-        reverts on its own.
-
-    Neither hook is meant to be bypassed with --no-verify: a gate that can be skipped is a
-    suggestion, and --no-verify would switch off the build as well as the version checks.
+      post-commit - rewrites the reference link block at the foot of CHANGELOG.md, so every version
+        links to its real release, and commits it separately so it reverts on its own. It does not
+        tag and it does not publish: that is GitHub Actions' job, because a local post-commit fires
+        before the commit is on the remote and a tag pushed from here has no source for GitHub to
+        show. Neither hook is meant to be bypassed with --no-verify: a gate that can be skipped is a
+        suggestion, and --no-verify would switch off the build as well as the version checks.
 
     Run it once per clone. Re-run it after pulling if anything under hooks/ changes.
 #>
@@ -70,8 +68,8 @@ foreach ($name in $installed) {
     Write-Host "[OK]   installed $target"
 }
 
-Write-Host "[INFO] pre-commit syncs the README badge to CHANGELOG.md, refuses untagged changelog links,"
-Write-Host "[INFO] then runs scripts/build.sh and scripts/smoke.sh."
-Write-Host "[INFO] post-commit tags and publishes v<version> from CHANGELOG.md, then regenerates the"
-Write-Host "[INFO] changelog links. Skip the release for one commit with ROOMS_SKIP_RELEASE=1."
+Write-Host "[INFO] pre-commit syncs the README badge to CHANGELOG.md, refuses a link to a release"
+Write-Host "[INFO] that was never published, then runs scripts/build.sh and scripts/smoke.sh."
+Write-Host "[INFO] post-commit rewrites the changelog links and commits them separately. Publishing"
+Write-Host "[INFO] is not local: pushing to master is, via .github/workflows/release.yml."
 Write-Host "[INFO] remove the hooks with: Remove-Item .git/hooks/pre-commit, .git/hooks/post-commit"

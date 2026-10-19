@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `scripts/package.sh`: a runnable `rooms.jar` and a zip carrying it with `rooms.csv`
+- GitHub Actions releases on push to master: tag, build, publish the artifact
+
 ## [0.1.0] - 2026-10-19
 
 ### Added
@@ -17,8 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Stat-gated rooms and win condition
 
 <!--
-The reference links at the foot of this file are written by hooks/post-commit, and only for versions
-that have a tag. `pre-commit` refuses a hand-written link to a release that does not exist.
+The reference links at the foot of this file are written by hooks/post-commit. A version is linked
+once it is tagged (published) or when it is the newest heading here, since the release is made by CI
+from the next push (pending). `pre-commit` refuses any other link.
 -->
 [Unreleased]: https://github.com/quackextractor/rooms-vse-collab/compare/v0.1.0...HEAD
 [0.1.0]: https://github.com/quackextractor/rooms-vse-collab/releases/tag/v0.1.0

@@ -1,0 +1,108 @@
+name: release
+
+# Two jobs, and the split is the point.
+#
+#   gate     every push and every pull request: compile, then the scripted opening. Nothing is
+#            published unless this passes.
+#   release  push to master only: tag the version CHANGELOG.md names, build the artifact, create the
+#            GitHub release with it attached.
+#
+# Publishing lives here rather than in hooks/post-commit because of when the two run. A local
+# post-commit fires while the commit exists only on this machine, so a tag pushed from there points at
+# an object the remote has never seen and the release renders with its source missing. This workflow
+# runs after the commit is on the remote, where tagging means what it says. It is also the only place
+# that can attach a build artifact to the release.
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+
+# Two pushes close together must not both decide no release exists and both try to create one.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '24'
+
+      - name: Compile
+        run: sh scripts/build.sh
+
+      - name: Smoke
+        run: sh scripts/smoke.sh
+
+  release:
+    needs: gate
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '24'
+
+      # Re-run rather than depend on the gate job: the gate ran in a different runner with a different
+      # checkout, and a release artifact must be built from the commit that is actually being released.
+      - name: Build and package
+        run: |
+          sh scripts/build.sh
+          sh scripts/smoke.sh
+          sh scripts/package.sh
+
+      - name: Read the newest released version from CHANGELOG.md
+        id: version
+        run: |
+          version=$(grep -m 1 -o '^## \[[0-9][^]]*\]' CHANGELOG.md | sed 's/^## \[//; s/\]$//')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "CHANGELOG.md says the current version is $version"
+
+      - name: Create the release, if it does not exist
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          version="${{ steps.version.outputs.version }}"
+
+          if [ -z "$version" ]; then
+            echo "[INFO] no released version heading in CHANGELOG.md, nothing to release."
+            exit 0
+          fi
+
+          # Idempotent by release rather than by tag: if someone pushed the tag without the release,
+          # `gh release create --verify-tag` would attach it, and if both exist there is nothing to do.
+          if gh release view "v$version" > /dev/null 2>&1; then
+            echo "[INFO] release v$version already exists, nothing to do."
+            exit 0
+          fi
+
+          git tag "v$version" "$GITHUB_SHA"
+          git push origin "refs/tags/v$version"
+
+          # The changelog section for this version, as the release notes. Everything below the next
+          # heading goes with it, along with the html comment and the reference link definitions -
+          # `0.1.0: https://...` is markdown plumbing and reads as noise on a release page.
+          sed -e "1,/^## \[$version\]/d" \
+            -e '/^<!--/,/-->/d' \
+            -e '/^\[\(Unreleased\|[0-9][^]]*\)\]:/d' \
+            -e '/^## \[/,$d' \
+            CHANGELOG.md > notes.md
+
+          gh release create "v$version" \
+            --title "v$version" \
+            --notes-file notes.md \
+            --verify-tag \
+            "out/dist/rooms-$version.zip"
+
+          echo "[OK] released v$version with out/dist/rooms-$version.zip attached."
