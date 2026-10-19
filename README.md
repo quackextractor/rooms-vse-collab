@@ -1,7 +1,7 @@
 # Rooms
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-0.1.1-blue.svg)](CHANGELOG.md)
 
 A small text adventure in Java. Explore rooms, fight enemies, collect items and reach the village of Villedor.
 
