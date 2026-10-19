@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Combat reads from the same `Scanner` as everything else, so scripted and piped input reaches a fight instead of dying on EOF at the first prompt
+- A crash reports the exception and exits non-zero, instead of printing an empty `Exception caught:` and exiting as if it had succeeded
+- The build compiles new source files that are not committed yet; it only saw tracked files and failed with `cannot find symbol` on the class it never compiled
+
 ## [0.1.3] - 2026-10-19
 
 ### Added

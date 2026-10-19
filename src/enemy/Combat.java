@@ -3,23 +3,22 @@ package enemy;
 import items.Weapon;
 import player.*;
 import room.Room;
+import utilities.Console;
 import utilities.Logic;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Scanner;
 
 public class Combat {
     public static void warn(Player player, List<Enemy> enemies) {
         // enemies attack serially in random order
         Collections.shuffle(enemies);
-        Scanner sc = new Scanner(System.in);
         while (true) {
             Logic.printToUser(player.getCurrentRoom().getCombatMessage());
             Logic.printToUser(enemies.toString());
             Logic.printToUser("Do you wish to proceed? [Y/N]");
-            String input = sc.nextLine();
+            String input = Console.readLine();
 
             int initialHealth = player.getStatValue("health");
             boolean isDefeated = false;

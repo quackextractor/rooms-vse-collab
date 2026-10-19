@@ -20,7 +20,12 @@ mkdir -p out/classes
 # git ls-files rather than find: git for windows ships sh with C:\Windows\System32 ahead of its own
 # /usr/bin in PATH, so `find` is the Microsoft one that prints "File not found - *.java" and exits 0.
 # A build script that silently compiles nothing is worse than one that fails.
-git ls-files -- 'src/*.java' > out/sources.txt
+#
+# --others --exclude-standard as well as --cached, because a class added in the working tree is not
+# tracked yet - and the commit that adds it is exactly the one this gate is meant to check. Without
+# it a new file fails to compile with "cannot find symbol" from every file that already imports it,
+# while the file itself is never compiled at all.
+git ls-files --cached --others --exclude-standard -- 'src/*.java' > out/sources.txt
 
 # -encoding UTF-8 is not optional: the map, the changelog and any Czech text in a room description are
 # all non-ASCII, and javac falls back to the platform default without it, which is a different answer

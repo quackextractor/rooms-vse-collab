@@ -40,11 +40,11 @@ public class Main {
         } catch (ParsingLevelException p) {
             Logic.printToUser(p.getMessage());
             Logic.printToUser("Unable to load game. Quitting.");
-            System.exit(0);
+            System.exit(1);
 
         } catch (Exception e) {
-            Logic.printToUser("Exception caught: ");
-            e.printStackTrace();
+            Logic.printToUser("Unexpected error: " + e);
+            System.exit(1);
         }
     }
 }

@@ -3,19 +3,17 @@ package player;
 import enemy.Combat;
 import commands.*;
 import items.Item;
+import utilities.Console;
 import utilities.Logic;
 
-import java.util.Scanner;
 import java.util.Stack;
 
 public class PlayerController {
     private Player player;
-    private Scanner scanner;
     private static Stack<Command> commandHistory;
 
     public PlayerController(Player player) {
         this.player = player;
-        this.scanner = new Scanner(System.in);
         commandHistory = new Stack<>();
     }
 
@@ -35,7 +33,7 @@ public class PlayerController {
             System.exit(0);
         }
 
-        String input = readLine().toUpperCase();
+        String input = Console.readLine().toUpperCase();
 
         switch (input) {
             case "N":
@@ -77,14 +75,6 @@ public class PlayerController {
 
 
 
-    private String readLine() {
-        if (!scanner.hasNextLine()) {
-            Logic.printToUser("Input ended. This game needs a terminal: double-click play.cmd on Windows,"
-                    + " or run java -jar rooms.jar from one.");
-            System.exit(0);
-        }
-        return scanner.nextLine();
-    }
 
     private void executeCommand(Command command) {
         command.execute();
@@ -112,7 +102,7 @@ public class PlayerController {
 
     private void pickUpItem() {
         Logic.printToUser("Enter the name of the item you want to pick up: ");
-        String itemName = readLine();
+        String itemName = Console.readLine();
         Item item = findItemInRoom(itemName);
         if (item != null) {
             Command pickUpCommand = new PickUpItemCommand(player, item);
@@ -124,7 +114,7 @@ public class PlayerController {
 
     private void discardItem() {
         Logic.printToUser("Enter the name of the item you want to discard: ");
-        String itemName = readLine();
+        String itemName = Console.readLine();
         Item item = findItemInInventory(itemName);
         if (item != null) {
             Command discardCommand = new DiscardItemCommand(player, item);

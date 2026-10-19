@@ -12,10 +12,10 @@ Edit this file, not the README. `CHANGELOG.md` records what has actually shipped
 
 ## Validation
 
-- `sh scripts/build.sh` compiles all 22 files with `javac`. `sh scripts/smoke.sh` plays a scripted opening headless. `sh scripts/package.sh` builds the release artifact and refuses to run without a version in the changelog.
+- `sh scripts/build.sh` compiles every file under `src/` with `javac`, tracked or not. `sh scripts/smoke.sh` runs three headless checks: the scripted opening, the no-terminal path, and one combat prompt. `sh scripts/package.sh` builds the release artifact and refuses to run without a version in the changelog.
 - **Do not run the first two before committing.** `hooks/pre-commit` runs both and refuses the commit if either fails, so running them first spends the same two seconds twice and changes nothing. `package.sh` is not in the hook, so run it when the release artifact or the `Main-Class` matters.
 - Run the smoke check when the change touches `MapLoader`, `rooms.csv`, items, stats, or `RoomCondition`, and watch it fail when you break what it guards. A gate you have not seen go red is a gate you have not tested.
-- The smoke run covers the opening only — parse the map, pick up the Magical Flower, open the wisdom-gated Castle Lobby. There is no test framework and adding one for this project is not a trade worth making; extend `smoke.sh` instead when a change needs a check that does not exist.
+- The smoke run covers the opening, the missing-terminal path and a combat prompt — not a whole game. There is no test framework and adding one for this project is not a trade worth making; extend `smoke.sh` instead when a change needs a check that does not exist.
 - CI runs the same two scripts before it publishes anything, so a green local gate is not what makes the release safe — the workflow's is.
 
 ## Structure
@@ -43,13 +43,13 @@ Edit this file, not the README. `CHANGELOG.md` records what has actually shipped
 - `-1` is a wall. Room `0` is the start. Room `11` is the win room and its `strength:30` condition is the only one that can end a run.
 - **A comma followed by a space is fine; a comma followed by anything else is not.** `MapLoader` splits on `,(?!\s)` — a comma *not* followed by whitespace — specifically so that "a nice room, full of nice things." survives as one column, which is how the guide's own example is written. What silently corrupts the map is a comma with no space after it: the column splits there, everything after shifts left, and the room loads as something that makes no sense rather than as an error.
 - Add a room to `rooms.csv` *and* to `map.png`. They are two views of one level and a map that disagrees with the game is worse than no map.
-- Enemies are listed as `Name:health:strength:agility`, semicolon-separated. Agility is the enemy's chance to dodge in percent — `Imp Assistant:15:5:30` dodges nearly a third of the time and dies in three hits, and that is the intended shape of the numbers.
+- Enemies are listed as `Name:health:strength:agility`, semicolon-separated. Agility decides who strikes first: the player opens when their agility is higher than the enemy's, otherwise the enemy does. `Imp Assistant:15:5:30` has 15 health, hits first against a fresh player, and dies in three hits.
 
 ## Commands
 
 - A command is a `Command` implementing `execute()` and `undo()`. Movement, pick-up and discard are undoable through `PlayerController`'s stack; `L` is not, and its `undo()` says so rather than pretending.
 - Adding a command means three edits: the class, the `switch` in `PlayerController`, and the help text — which is written out twice, in `Main` and again in the `H` case. Update both or neither; they are already two copies of the same sentence.
-- The `switch` reads one uppercase line from a single `Scanner` in `PlayerController`. `Combat` makes a *second* `Scanner` over the same stream, which works only because combat prompts before it reads. Do not add a third reader.
+- All input goes through `utilities.Console.readLine()`, which owns the one `Scanner` over `System.in` and reports EOF instead of throwing. `PlayerController` and `Combat` share it. Do not create a second reader: one over the same stream buffers lines the other cannot see, which is what made scripted combat impossible and what the combat check in `smoke.sh` now guards.
 
 ## Commits
 
