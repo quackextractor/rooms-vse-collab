@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.2] - 2026-10-19
+## [0.1.3] - 2026-10-19
 
 ### Added
 
@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - The jar is built with `--release 17`, so it starts on the Java 17 or 21 an ordinary machine has instead of requiring the JDK that built it
+
+## [0.1.2] - 2026-10-19
 
 ### Fixed
 
@@ -45,7 +47,8 @@ The reference links at the foot of this file are written by hooks/post-commit. A
 once it is tagged (published) or when it is the newest heading here, since the release is made by CI
 from the next push (pending). `pre-commit` refuses any other link.
 -->
-[Unreleased]: https://github.com/quackextractor/rooms-vse-collab/compare/v0.1.2...HEAD
+[Unreleased]: https://github.com/quackextractor/rooms-vse-collab/compare/v0.1.3...HEAD
+[0.1.3]: https://github.com/quackextractor/rooms-vse-collab/releases/tag/v0.1.3
 [0.1.2]: https://github.com/quackextractor/rooms-vse-collab/releases/tag/v0.1.2
 [0.1.1]: https://github.com/quackextractor/rooms-vse-collab/releases/tag/v0.1.1
 [0.1.0]: https://github.com/quackextractor/rooms-vse-collab/releases/tag/v0.1.0
