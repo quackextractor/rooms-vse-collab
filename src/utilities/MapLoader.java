@@ -40,6 +40,13 @@ public class MapLoader {
                 List<Item> items = parseItems(parts.length > 7 ? parts[7] : "");
                 List<Enemy> enemies = parseEnemies(parts.length > 8 ? parts[8] : "");           // add to csv file
                 String warningMessage = (parts.length > 9 ? parts[9] : "");                     // add to csv file
+
+                if (warningMessage.matches("[^:;]+:\\d+:\\d+:\\d+(;[^:;]+:\\d+:\\d+:\\d+)*")) {
+                    throw new ParsingLevelException("The warning message is an enemy definition: \""
+                            + warningMessage + "\". The enemies column is empty, which means one comma"
+                            + " too many before it - every column after that is shifted by one.");
+                }
+
                 List<Weapon> weapons = parseWeapons(parts.length > 10 ? parts[10] : "");
                 List<RoomCondition> conditions = parseConditions(parts.length > 11 ? parts[11] : "");
                 boolean isWinRoom = parts.length > 12 && Boolean.parseBoolean(parts[12]);       // add to csv file

@@ -94,4 +94,44 @@ if grep -qi 'exception' combat.log; then
     exit 1
 fi
 
-echo "[OK]   smoke run passed (out/smoke/smoke.log, out/smoke/eof.log, out/smoke/combat.log)"
+# Rooms 4 and 6 carried an extra comma, which put the Ghost and the Horseless Headless Knight in the
+# warning-message column; the rooms loaded with no enemies and the strings were never parsed. Walking
+# to them is the only check that proves a row is parsed as data: the prompt names the enemy that was
+# loaded, so a missing one is visible even though the fight is never finished.
+printf 'P\nMagical Flower\nE\nP\nShield\nP\nSword\nN\nE\nY\nE\nY\nS\nY\nE\n' \
+    | java -cp ../classes Main > enemies.log 2>&1 || true
+
+if ! grep -q "name='Ghost'" enemies.log; then
+    echo "[ERROR] smoke: room 4 loaded no Ghost. Its row in rooms.csv is shifted - the enemy list"
+    echo "        belongs in column 8, the warning message in column 9."
+    exit 1
+fi
+
+if ! grep -q "name='Horseless Headless Knight'" enemies.log; then
+    echo "[ERROR] smoke: room 6 loaded no Horseless Headless Knight. Same shift as room 4."
+    exit 1
+fi
+
+if grep -qi 'exception' enemies.log; then
+    echo "[ERROR] smoke: walking the castle threw."
+    grep -i -A 5 'exception' enemies.log
+    exit 1
+fi
+
+# The guard that keeps the two rows fixed. A warning message shaped exactly like an enemy definition
+# cannot be a warning message, so the map is refused instead of loading a room that never fights.
+mkdir -p bad
+sed 's/Map:wisdom:5,Ghost:40:6:7/Map:wisdom:5,,Ghost:40:6:7/' rooms.csv > bad/rooms.csv
+
+if ( cd bad && java -cp ../../classes Main > bad.log 2>&1 ); then
+    echo "[ERROR] smoke: a map with an enemy in the warning column loaded anyway."
+    exit 1
+fi
+
+if ! grep -q 'warning message is an enemy definition' bad/bad.log; then
+    echo "[ERROR] smoke: the shifted map was refused, but not for the reason it should be."
+    tail -5 bad/bad.log
+    exit 1
+fi
+
+echo "[OK]   smoke run passed (smoke.log, eof.log, combat.log, enemies.log, bad/bad.log)"
