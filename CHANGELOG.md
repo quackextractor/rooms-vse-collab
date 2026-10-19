@@ -20,3 +20,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 The reference links at the foot of this file are written by hooks/post-commit, and only for versions
 that have a tag. `pre-commit` refuses a hand-written link to a release that does not exist.
 -->
+[Unreleased]: https://github.com/quackextractor/rooms-vse-collab/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/quackextractor/rooms-vse-collab/releases/tag/v0.1.0
