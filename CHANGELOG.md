@@ -7,14 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-10-19
+
+### Fixed
+
+- Starting the jar with no terminal reports that and names the way out, instead of dying with a `NoSuchElementException` and an empty `Exception caught:`
+- The release carries `play.cmd`, which opens the game in a console; double-clicking a jar gives it no stdin to read
+
 ## [0.1.1] - 2026-10-19
 
 ### Fixed
 
 - Releases carry `map.png`, so a downloaded release can be played without a second visit to the repository
 - The release zip no longer contains a `META-INF/` folder; it holds the jar, the map and the picture
-- Starting the jar with no terminal reports that and names the way out, instead of dying with a `NoSuchElementException` and an empty `Exception caught:`
-- The release carries `play.cmd`, which opens the game in a console; double-clicking a jar gives it no stdin to read
 
 ## [0.1.0] - 2026-10-19
 
@@ -32,6 +37,7 @@ The reference links at the foot of this file are written by hooks/post-commit. A
 once it is tagged (published) or when it is the newest heading here, since the release is made by CI
 from the next push (pending). `pre-commit` refuses any other link.
 -->
-[Unreleased]: https://github.com/quackextractor/rooms-vse-collab/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/quackextractor/rooms-vse-collab/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/quackextractor/rooms-vse-collab/releases/tag/v0.1.2
 [0.1.1]: https://github.com/quackextractor/rooms-vse-collab/releases/tag/v0.1.1
 [0.1.0]: https://github.com/quackextractor/rooms-vse-collab/releases/tag/v0.1.0
