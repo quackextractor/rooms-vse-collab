@@ -25,6 +25,11 @@ git ls-files -- 'src/*.java' > out/sources.txt
 # -encoding UTF-8 is not optional: the map, the changelog and any Czech text in a room description are
 # all non-ASCII, and javac falls back to the platform default without it, which is a different answer
 # on every machine.
-javac -encoding UTF-8 -d out/classes @out/sources.txt
+#
+# --release 17 and not the JDK that happens to be installed. Without it the class files carry the
+# compiler's own version - 68 under JDK 24 - so the released jar refuses to start on the Java 17 or 21
+# an ordinary machine has, for no reason the code asks for. The source uses nothing newer than 17, so
+# 17 is the honest floor and the artifact says so.
+javac --release 17 -encoding UTF-8 -d out/classes @out/sources.txt
 
 echo "[OK]   compiled $(wc -l < out/sources.txt | tr -d ' ') source file(s) into out/classes"

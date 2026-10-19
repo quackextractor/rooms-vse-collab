@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.2] - 2026-10-19
 
+### Added
+
+- The release carries `README.txt`: how to run it, what each file is for, the controls, and the Czech documentation link
+
+### Changed
+
+- The jar is built with `--release 17`, so it starts on the Java 17 or 21 an ordinary machine has instead of requiring the JDK that built it
+
 ### Fixed
 
 - Starting the jar with no terminal reports that and names the way out, instead of dying with a `NoSuchElementException` and an empty `Exception caught:`

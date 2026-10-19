@@ -66,4 +66,14 @@ if grep -qi 'exception' eof.log; then
     exit 1
 fi
 
+# Byte 7 of a class file is the major version, and 61 is Java 17. README.txt promises 17 or newer, and
+# the only way that promise breaks is build.sh losing --release 17 - which nothing else would notice,
+# because the JDK that builds it can always run its own output.
+set -- $(od -An -tu1 -j6 -N2 ../classes/Main.class)
+if [ "$2" -gt 61 ]; then
+    echo "[ERROR] smoke: Main.class targets a Java newer than 17 (major version $2), so the release"
+    echo "        would refuse to start on a Java 17 machine. Check --release 17 in scripts/build.sh."
+    exit 1
+fi
+
 echo "[OK]   smoke run passed (out/smoke/smoke.log, out/smoke/eof.log)"

@@ -17,6 +17,10 @@
 # exactly what a fresh download did. A .cmd is opened by cmd.exe with a real console attached, and
 # its pause keeps the window up when the game exits.
 #
+# README.txt is the instructions for whoever unpacks this, and it is not the repository's README.md:
+# that one explains the build, the hooks and the release process to someone working on the code. A
+# player needs the controls, the Java version and the reason the csv has to travel with the jar.
+#
 # `jar` builds the zip. Git for Windows ships no `zip`, and a .zip made by `jar` is a zip: the format
 # is the container, and both Windows Explorer and `unzip` open the result without being told anything
 # about how it was made.
@@ -75,10 +79,12 @@ fi
 cp rooms.csv out/dist/rooms.csv
 cp map.png out/dist/map.png
 cp play.cmd out/dist/play.cmd
+cp README.txt out/dist/README.txt
 
 # --no-manifest: without it `jar` writes a META-INF/MANIFEST.MF into the zip as well, and the first
 # thing a player sees when they unpack a release is a folder of build plumbing they did not ask for.
 "$jar_tool" --create --file "out/dist/rooms-$version.zip" --no-manifest \
-    -C out/dist rooms.jar -C out/dist rooms.csv -C out/dist map.png -C out/dist play.cmd
+    -C out/dist rooms.jar -C out/dist rooms.csv -C out/dist map.png \
+    -C out/dist play.cmd -C out/dist README.txt
 
 echo "[OK]   packaged out/dist/rooms.jar and out/dist/rooms-$version.zip (version $version)"
