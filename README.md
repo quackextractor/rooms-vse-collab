@@ -12,7 +12,7 @@ sh scripts/build.sh
 java -cp out/classes Main
 ```
 
-Or download a release zip and run `java -jar rooms.jar`.
+Or download a release zip and double-click `play.cmd` (`java -jar rooms.jar` from a terminal also works; double-clicking the jar itself does not, because it gets no terminal to read from).
 
 `rooms.csv` must sit in the working directory. Its format is described in [map guide.txt](map%20guide.txt), the map itself in [map.png](map.png).
 

@@ -48,4 +48,22 @@ if grep -qi 'exception' smoke.log; then
     exit 1
 fi
 
-echo "[OK]   smoke run passed (out/smoke/smoke.log)"
+# The other way to start the game, and the one a player hits first: no stdin at all, which is what
+# double-clicking the jar produces. It used to end in a NoSuchElementException printed as a bare
+# "Exception caught:" with the stack trace on a stream nobody was watching. The check is that the
+# game says what happened and how to get a terminal, and that it says it instead of throwing.
+printf '' | java -cp ../classes Main > eof.log 2>&1
+
+if ! grep -q 'Input ended' eof.log; then
+    echo "[ERROR] smoke: the game no longer reports a missing terminal. It should say 'Input ended'"
+    echo "        and name play.cmd; run it with no stdin and look at out/smoke/eof.log."
+    exit 1
+fi
+
+if grep -qi 'exception' eof.log; then
+    echo "[ERROR] smoke: the game threw on empty input instead of reporting it."
+    grep -i -A 5 'exception' eof.log
+    exit 1
+fi
+
+echo "[OK]   smoke run passed (out/smoke/smoke.log, out/smoke/eof.log)"

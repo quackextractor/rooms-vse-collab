@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Releases carry `map.png`, so a downloaded release can be played without a second visit to the repository
 - The release zip no longer contains a `META-INF/` folder; it holds the jar, the map and the picture
+- Starting the jar with no terminal reports that and names the way out, instead of dying with a `NoSuchElementException` and an empty `Exception caught:`
+- The release carries `play.cmd`, which opens the game in a console; double-clicking a jar gives it no stdin to read
 
 ## [0.1.0] - 2026-10-19
 

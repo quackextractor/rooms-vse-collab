@@ -35,7 +35,7 @@ public class PlayerController {
             System.exit(0);
         }
 
-        String input = scanner.nextLine().toUpperCase();
+        String input = readLine().toUpperCase();
 
         switch (input) {
             case "N":
@@ -77,6 +77,15 @@ public class PlayerController {
 
 
 
+    private String readLine() {
+        if (!scanner.hasNextLine()) {
+            Logic.printToUser("Input ended. This game needs a terminal: double-click play.cmd on Windows,"
+                    + " or run java -jar rooms.jar from one.");
+            System.exit(0);
+        }
+        return scanner.nextLine();
+    }
+
     private void executeCommand(Command command) {
         command.execute();
         commandHistory.push(command);
@@ -103,7 +112,7 @@ public class PlayerController {
 
     private void pickUpItem() {
         Logic.printToUser("Enter the name of the item you want to pick up: ");
-        String itemName = scanner.nextLine();
+        String itemName = readLine();
         Item item = findItemInRoom(itemName);
         if (item != null) {
             Command pickUpCommand = new PickUpItemCommand(player, item);
@@ -115,7 +124,7 @@ public class PlayerController {
 
     private void discardItem() {
         Logic.printToUser("Enter the name of the item you want to discard: ");
-        String itemName = scanner.nextLine();
+        String itemName = readLine();
         Item item = findItemInInventory(itemName);
         if (item != null) {
             Command discardCommand = new DiscardItemCommand(player, item);
