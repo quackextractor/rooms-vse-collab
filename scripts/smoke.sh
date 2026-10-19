@@ -29,7 +29,7 @@ cd out/smoke
 
 # Pick up the Magical Flower in the Castle Harbour (+10 wisdom, 10 -> 20), walk east into the Castle
 # Lobby, which is gated at wisdom 15 and therefore unenterable without it, then inventory and quit.
-printf 'P\nMagical Flower\nE\nI\nQ\n' | java -cp ../classes Main > smoke.log 2>&1
+printf 'P\nMagical Flower\nE\nI\nQ\n' | java -cp ../classes Main > smoke.log 2>&1 || true
 
 if ! grep -q 'Picked up Magical Flower.' smoke.log; then
     echo "[ERROR] smoke: the opening item was never picked up - did rooms.csv or MapLoader change?"
@@ -52,7 +52,7 @@ fi
 # double-clicking the jar produces. It used to end in a NoSuchElementException printed as a bare
 # "Exception caught:" with the stack trace on a stream nobody was watching. The check is that the
 # game says what happened and how to get a terminal, and that it says it instead of throwing.
-printf '' | java -cp ../classes Main > eof.log 2>&1
+printf '' | java -cp ../classes Main > eof.log 2>&1 || true
 
 if ! grep -q 'Input ended' eof.log; then
     echo "[ERROR] smoke: the game no longer reports a missing terminal. It should say 'Input ended'"
@@ -76,4 +76,22 @@ if [ "$2" -gt 61 ]; then
     exit 1
 fi
 
-echo "[OK]   smoke run passed (out/smoke/smoke.log, out/smoke/eof.log)"
+# Combat used to open its own Scanner over System.in, after the first one had buffered the piped input,
+# so a scripted fight hit EOF at the first Y/N prompt and the game died with a NoSuchElementException.
+# One shared reader means the prompt is reachable from the same stream as everything else, which is
+# the only reason combat can be part of a headless check at all.
+printf 'P\nMagical Flower\nE\nN\nE\nY\n' | java -cp ../classes Main > combat.log 2>&1 || true
+
+if ! grep -q 'You attack Gargoyle' combat.log; then
+    echo "[ERROR] smoke: piped input no longer reaches combat. The Gargoyle prompt was never answered"
+    echo "        by a real fight - check that PlayerController and Combat share one reader."
+    exit 1
+fi
+
+if grep -qi 'exception' combat.log; then
+    echo "[ERROR] smoke: combat threw on piped input."
+    grep -i -A 5 'exception' combat.log
+    exit 1
+fi
+
+echo "[OK]   smoke run passed (out/smoke/smoke.log, out/smoke/eof.log, out/smoke/combat.log)"

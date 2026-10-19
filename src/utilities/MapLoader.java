@@ -51,9 +51,9 @@ public class MapLoader {
         } catch (FileNotFoundException e) {
             throw new FileNotFoundException("File not found: " + filePath);
         } catch (IOException e) {
-            throw new IOException("Error reading CSV file: " + e.getMessage()+ "Invalid map formatting at line " + lineCount);
+            throw new IOException("Invalid map formatting at line " + lineCount + ": " + e.getMessage());
         } catch (NumberFormatException e) {
-            throw new NumberFormatException("Invalid number format in CSV file: " + e.getMessage() + "Invalid map formatting at line " + lineCount);
+            throw new NumberFormatException("Invalid map formatting at line " + lineCount + ": " + e.getMessage());
         } catch (Exception e){
           Logic.printToUser("Invalid map formatting at line " + lineCount);
          Logic.printToUser(e.getMessage());
