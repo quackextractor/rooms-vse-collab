@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Combat reads from the same `Scanner` as everything else, so scripted and piped input reaches a fight instead of dying on EOF at the first prompt
+- The Ghost in room 4 and the Horseless Headless Knight in room 6 spawn again; an extra comma in each row put the enemy list in the warning-message column, so both rooms loaded with nothing to fight
+- `MapLoader` refuses a map whose warning message is an enemy definition, and says which column is shifted, instead of loading the room as if it had no enemies
 - A crash reports the exception and exits non-zero, instead of printing an empty `Exception caught:` and exiting as if it had succeeded
 - The build compiles new source files that are not committed yet; it only saw tracked files and failed with `cannot find symbol` on the class it never compiled
 

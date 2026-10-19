@@ -2,9 +2,9 @@
 1,Castle Lobby,2,-1,8,0,You stand in the grand lobby of the ancient castle, its walls adorned with tapestries depicting heroic battles and noble rulers of old.,Shield:health:5,,,Sword:10:strength:12,wisdom:15:You can't figure out how to get into the castle.:false,
 2,L1,-1,3,1,-1,You find yourself in a dimly lit corridor, torches flickering sporadically along its length.,Scroll:wisdom:5;Potion:health:30,,,,
 3,L2,-1,4,-1,2,The air grows colder as you venture deeper into the castle's labyrinthine halls, a sense of foreboding creeping over you.,,Gargoyle:60:8:6,,,
-4,L3,-1,-1,5,3,You arrive at the dining room, the smell of rotten food disgusts you.,Axe:strength:7;Map:wisdom:5,,Ghost:40:6:7,,,
+4,L3,-1,-1,5,3,You arrive at the dining room, the smell of rotten food disgusts you.,Axe:strength:7;Map:wisdom:5,Ghost:40:6:7,,,
 5,Crossroads,4,6,10,101,You stand at a crossroads, paths leading to various parts of the castle.,,Spider:50:9:4,,,
-6,Judgment Hall,-1,7,-1,5,You enter a vast hall with a high ceiling, rows of empty benches lining the walls.,Bow:strength:6;Arrows:strength:4,,Horseless Headless Knight:30:10:3,,,
+6,Judgment Hall,-1,7,-1,5,You enter a vast hall with a high ceiling, rows of empty benches lining the walls.,Bow:strength:6;Arrows:strength:4,Horseless Headless Knight:30:10:3,,,
 7,Large Flooded Room,-1,11,-1,6,You find yourself in a large room, the floor covered in ankle-deep water.,,Siren King:100:25:5,,,
 8,R1,1,9,-1,-1,You step into a small chamber, its walls adorned with intricate carvings and faded murals.,,Imp:30:10:9;Imp Assistant:15:5:30
 9,R2,-1,10,-1,8,You enter a room filled with shelves containing dusty tomes and ancient artifacts.,,Rat:5:3:25;Rat:5:3:25;Rat:5:3:25;Rat:5:3:25;Rat:5:3:25;Rat:5:3:25;Rat:5:3:25;Rat:5:3:25;Rat:5:3:25;Fat Rat:20:10:0,You hear the furious squeaks of hundreds of rats
