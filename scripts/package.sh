@@ -1,17 +1,20 @@
 #!/bin/sh
 #
-# Packages what a release actually contains: a runnable jar and the map beside it.
+# Packages what a release actually contains: a runnable jar, the map it loads, and the picture of it.
 #
-# Two files, not one, because Main opens rooms.csv from the *working directory* rather than from the
-# classpath (`new FileReader(filePath)` in MapLoader). A jar that carried the csv inside it would need
-# a loader change - read the working directory first, fall back to a classpath resource - before it
-# ran anywhere but next to its source. The other option was chosen against for now; a single
-# downloadable file is the better artifact and the loader fix is about six lines, so revisit it when
-# there is a reason to.
+# rooms.csv travels beside the jar rather than inside it, because Main opens it from the *working
+# directory* rather than from the classpath (`new FileReader(filePath)` in MapLoader). A jar that
+# carried it would need a loader change - read the working directory first, fall back to a classpath
+# resource - before it ran anywhere but next to its source. The other option was chosen against for
+# now; a single downloadable file is the better artifact and the loader fix is about six lines, so
+# revisit it when there is a reason to.
+#
+# map.png is the map drawn as a picture. The CSV is the level; this is what a player reads it
+# against, and a release without it is a release that cannot be played without a second download.
 #
 # `jar` builds the zip. Git for Windows ships no `zip`, and a .zip made by `jar` is a zip: the format
-# is the container, the manifest is just one more entry in it, and both Windows Explorer and `unzip`
-# open the result without being told anything about how it was made.
+# is the container, and both Windows Explorer and `unzip` open the result without being told anything
+# about how it was made.
 
 set -e
 
@@ -65,7 +68,11 @@ fi
 "$jar_tool" --create --file out/dist/rooms.jar --main-class Main -C out/classes .
 
 cp rooms.csv out/dist/rooms.csv
+cp map.png out/dist/map.png
 
-"$jar_tool" --create --file "out/dist/rooms-$version.zip" -C out/dist rooms.jar -C out/dist rooms.csv
+# --no-manifest: without it `jar` writes a META-INF/MANIFEST.MF into the zip as well, and the first
+# thing a player sees when they unpack a release is a folder of build plumbing they did not ask for.
+"$jar_tool" --create --file "out/dist/rooms-$version.zip" --no-manifest \
+    -C out/dist rooms.jar -C out/dist rooms.csv -C out/dist map.png
 
 echo "[OK]   packaged out/dist/rooms.jar and out/dist/rooms-$version.zip (version $version)"
