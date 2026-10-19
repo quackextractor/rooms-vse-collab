@@ -1,0 +1,240 @@
+#!/bin/sh
+#
+# Post-commit: release whatever CHANGELOG.md says the version is, and keep the changelog's links alive.
+#
+# Installed by install-hooks.ps1; the tracked copy lives in hooks/ beside pre-commit. .git/hooks is not
+# in the repository, so a fresh clone has to run the installer once before its first commit.
+#
+# --------------------------------------------------------------------------------------------
+# WHAT THIS DOES NOT DO, AND WHY
+#
+# It cannot refuse a commit. That is the whole nature of post-commit: the commit exists by the time
+# this runs, and it does not fail because something was found afterwards. So the two halves have
+# deliberately different authority, and both are non-fatal:
+#
+#   tag + release   publish, once, when the changelog names a version that has no tag yet
+#   link rewrite    automatic, and committed separately so it reverts on its own
+#
+# The release half only ever adds a tag. It never moves one and never force-pushes, so a tag this
+# hook made cannot be quietly rewritten to point somewhere else - a tag that moves is a tag that
+# stops meaning anything.
+#
+# --------------------------------------------------------------------------------------------
+# THE RECURSION GUARD, which is not optional
+#
+# This hook runs `git commit`, and `git commit` runs post-commit. Without the guard below it would
+# rewrite the links, commit, rewrite, commit, until git refused an empty commit. The inner commit
+# sets ROOMS_AUTOCOMMIT so the nested invocation returns at the first line.
+
+set -e
+
+if [ -n "$ROOMS_AUTOCOMMIT" ]; then
+    exit 0
+fi
+
+# Resolved from this file's own location, not from the working directory. git runs a hook with the
+# worktree root as its cwd, but this hook is also run by hand - and a hook that resolves the
+# repository from the cwd will tag, push and commit inside whichever repository the shell happens to
+# be sitting in. Everything below this line reaches the network, so guessing wrong is not a mistake
+# that stays local.
+#
+# Two shapes, because this file is both a tracked copy under <root>/hooks and the installed copy
+# under <root>/.git/hooks. `git rev-parse --show-toplevel` cannot be run from inside .git at all:
+# there is no work tree there, so it exits 128 - and this hook is the one allowed to reach GitHub.
+hook_dir=$(cd "$(dirname "$0")" && pwd)
+
+case "$hook_dir" in
+    */.git/hooks) repo_root=$(cd "$hook_dir/../.." && pwd) ;;
+    *)            repo_root=$(git -C "$hook_dir" rev-parse --show-toplevel) ;;
+esac
+
+if [ ! -e "$repo_root/.git" ]; then
+    echo "[ERROR] $hook_dir is not inside a git work tree. Nothing to release."
+    exit 1
+fi
+
+cd "$repo_root"
+
+# ROOMS_SKIP_RELEASE=1 for a commit that changes CHANGELOG.md's wording without meaning to cut a
+# release. The tag is the thing that makes a release, so suppressing it has to be possible - but it is
+# never the default and never silent: a skipped tag prints.
+if [ -n "$ROOMS_SKIP_RELEASE" ]; then
+    echo "[INFO]  post-commit: ROOMS_SKIP_RELEASE is set, no tag and no release."
+    exit 0
+fi
+
+# The same expression pre-commit reads, from the same file. One rule for where the version lives:
+# CHANGELOG.md says what the version is, and nothing else gets a vote.
+version=$(grep -a -o '^## \[[0-9][^]]*\]' CHANGELOG.md \
+    | head -1 \
+    | sed 's/^## \[//; s/\]$//')
+
+if [ -z "$version" ]; then
+    echo "[INFO]  post-commit: CHANGELOG.md has no released version heading, nothing to do."
+    exit 0
+fi
+
+# --------------------------------------------------------------------------------------------
+# STATE, READ BEFORE ANYTHING IS WRITTEN
+#
+# The tag half is happy to run against a dirty tree - a tag points at a commit, not at the working
+# directory, so uncommitted work does not make it wrong. The link half does not: it commits, and a
+# commit made here would sweep up whatever else was lying around. So the tree is sampled first and
+# the two halves are allowed to disagree about it.
+
+dirty_before=""
+if [ -n "$(git status --porcelain --untracked-files=no)" ]; then
+    dirty_before=1
+fi
+
+# --------------------------------------------------------------------------------------------
+# THE TAG AND THE RELEASE
+#
+# Only for a version that has no tag yet, so this is a no-op on every ordinary commit.
+
+if git rev-parse -q --verify "refs/tags/v$version" > /dev/null 2>&1; then
+    echo "[INFO]  post-commit: v$version is already tagged."
+else
+    git tag -a "v$version" -m "Release v$version" HEAD
+    echo "[OK]   post-commit: tagged HEAD as v$version."
+fi
+
+# git prints the remote as an https URL ending in .git; the link definitions want the human one.
+repo_url=$(git config --get remote.origin.url | sed 's|\.git$||')
+
+if [ -z "$repo_url" ]; then
+    echo "[INFO]  post-commit: no remote, so the tag stays local."
+else
+    # Published only once the commit it points at is already on the remote. A tag pushed ahead of its
+    # commit points at an object the remote has never seen, and GitHub renders that as a release whose
+    # source is missing - which is worse than no release, because it looks published. The commit is
+    # pushed by the user, not by this hook, so this is usually a message rather than an action.
+    branch=$(git rev-parse --abbrev-ref HEAD)
+    upstream="refs/remotes/origin/$branch"
+
+    if git rev-parse -q --verify "$upstream" > /dev/null 2>&1 && git merge-base --is-ancestor HEAD "$upstream"; then
+        # Captured and then checked, rather than piped into sed and tested: in a pipeline the exit
+        # status is the *last* command's, so `git push ... | sed ...` reports sed's status and a push
+        # that failed is announced as a push that succeeded. GIT_TERMINAL_PROMPT=0 so a missing
+        # credential fails immediately instead of opening a prompt behind a `git commit` the user
+        # believes has already finished.
+        push_out=$(GIT_TERMINAL_PROMPT=0 git push origin "refs/tags/v$version" 2>&1) && push_rc=0 || push_rc=$?
+
+        if [ -n "$push_out" ]; then
+            printf '%s\n' "$push_out" | sed 's/^/[INFO]  /'
+        fi
+
+        if [ "$push_rc" -eq 0 ]; then
+            echo "[OK]   post-commit: pushed tag v$version."
+
+            if command -v gh > /dev/null 2>&1 && gh auth status > /dev/null 2>&1; then
+                if gh release view "v$version" > /dev/null 2>&1; then
+                    echo "[INFO]  post-commit: release v$version already exists."
+                else
+                    # The changelog section for this version, as the release notes. The reference link
+                    # definitions are stripped along with everything below the next heading, because
+                    # `0.1.0: https://...` is markdown plumbing and reads as noise on a release page.
+                    # out/ rather than the system temp directory: the file is read on the next line, and
+                    # Artefacts stay inside the repository. mkdir because this
+                    # hook can be run by hand before anything has ever been built, and with set -e a
+                    # redirect into a directory that does not exist kills the release.
+                    mkdir -p out
+                    sed -e "1,/^## \[$version\]/d" -e '/^\[[0-9][^]]*\]:/d' -e '/^## \[/,$d' \
+                        CHANGELOG.md > out/release-notes.md
+
+                    if gh release create "v$version" --title "v$version" --notes-file out/release-notes.md; then
+                        echo "[OK]   post-commit: created the GitHub release for v$version."
+                    else
+                        echo "[WARN]  post-commit: gh could not create the release. The tag is pushed;"
+                        echo "[WARN]  the changelog link will 404 until it exists. Create it with:"
+                        echo "[WARN]      gh release create v$version --title v$version --notes-file <notes>"
+                    fi
+                fi
+            else
+                echo "[WARN]  post-commit: no authenticated 'gh', so only the tag was published."
+                echo "[WARN]  create the release by hand with: gh release create v$version"
+            fi
+        else
+            echo "[WARN]  post-commit: could not push tag v$version. Push it with:"
+            echo "[WARN]      git push origin v$version"
+        fi
+    else
+        echo "[INFO]  post-commit: $branch is not pushed yet, so v$version is tagged locally only."
+        echo "[INFO]  push the branch, then run .git/hooks/post-commit to publish the release."
+    fi
+fi
+
+# --------------------------------------------------------------------------------------------
+# THE LINKS
+#
+# Every version in the changelog gets a definition pointing at its release, and every definition
+# that has no tag loses it. Generated rather than hand-written because the hand-written version is
+# exactly what shipped in this repository's first commit: a link to a release that never existed,
+# sitting in the document people trust to say what was released. post-commit rewrites the block after
+# every commit, so the links cannot outlive the tags they name.
+#
+# A definition is written for a tagged version only. Until the tag exists the heading renders as
+# literal `[0.1.0]` text, which is ugly and harmless; a dead link is neither.
+
+newest_tagged=""
+
+block=""
+
+# Only for a remote the links can actually resolve against. A local path or an ssh remote produces
+# `C:/src/repo/releases/tag/v0.1.0`, which is not a URL - and writing it anyway produced a block that
+# could not be recognised as generated on the next run, so it was appended again and again.
+case "$repo_url" in
+    http://* | https://*)
+        for v in $(grep -a -o '^## \[[0-9][^]]*\]' CHANGELOG.md | sed 's/^## \[//; s/\]$//'); do
+            if git rev-parse -q --verify "refs/tags/v$v" > /dev/null 2>&1; then
+                if [ -z "$newest_tagged" ]; then
+                    newest_tagged="$v"
+                    block="[Unreleased]: $repo_url/compare/v$v...HEAD
+$block"
+                fi
+                block="$block[$v]: $repo_url/releases/tag/v$v
+"
+            fi
+        done
+        ;;
+    *)
+        if [ -n "$repo_url" ]; then
+            echo "[INFO]  post-commit: remote is not an http(s) URL, so no changelog links are written."
+        fi
+        ;;
+esac
+
+# Strip exactly the definitions this hook writes - one per version heading, plus Unreleased - and
+# nothing else. A blanket '^\[...\]:' strip would also delete the reference-style links a changelog is
+# likely to carry in its header, and the version-shaped ones in particular: `[1.1.0]: <url>` under
+# "based on Keep a Changelog" has the same shape as a release link, and the two are told apart only by
+# whether the version is one of this file's own headings.
+tmp=CHANGELOG.md.tmp
+
+cp CHANGELOG.md "$tmp"
+
+for v in $(grep -a -o '^## \[[0-9][^]]*\]' CHANGELOG.md | sed 's/^## \[//; s/\]$//') Unreleased; do
+    grep -a -v "^\[$v\]: " "$tmp" > "$tmp.next" || true
+    mv "$tmp.next" "$tmp"
+done
+
+mv "$tmp" CHANGELOG.md
+printf '%s' "$block" >> CHANGELOG.md
+
+if [ -z "$(git status --porcelain -- CHANGELOG.md)" ]; then
+    echo "[INFO]  post-commit: changelog links are correct."
+else
+    if [ -n "$dirty_before" ]; then
+        echo "[INFO]  post-commit: working tree is not clean, so the changelog links were rewritten"
+        echo "[INFO]  but not committed. Commit them yourself, or run .git/hooks/post-commit again."
+    else
+        git add -- CHANGELOG.md
+        ROOMS_AUTOCOMMIT=1 git commit -q -m "chore(release): link CHANGELOG.md to tagged releases
+
+Added by the post-commit hook, as a separate commit so it reverts on its own.
+A definition is written for a tagged version only, so a link cannot outlive its release."
+        echo "[OK]   post-commit: changelog links rewritten in a separate commit."
+    fi
+fi
+
+exit 0

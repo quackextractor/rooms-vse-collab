@@ -1,0 +1,5 @@
+# The hooks and the build scripts are executed by sh, including on Windows. A CRLF in the shebang
+# line makes the interpreter unresolvable and git skips the hook without saying so - a gate that
+# silently stops running is worse than one that fails, because nothing reports it.
+hooks/*   text eol=lf
+scripts/* text eol=lf
