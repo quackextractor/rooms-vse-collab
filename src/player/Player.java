@@ -59,6 +59,7 @@ public class Player {
             Logic.printToUser("Picked up " + item.getName() + ".");
             // Apply stats from the picked up item
             applyStats(item.getStats());
+            showStats();
             showItemsInRoom();
         } else {
             Logic.printToUser("Item not found in the room.");
