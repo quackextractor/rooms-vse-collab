@@ -4,6 +4,7 @@ import items.Item;
 import items.Weapon;
 import room.Room;
 import utilities.Logic;
+import utilities.MapView;
 
 import java.util.*;
 
@@ -14,6 +15,7 @@ public class Player {
     private List<Weapon> inventoryWeapons;
     private Map<String, Integer> stats = new LinkedHashMap<>();
     private List<String> existingStats = new ArrayList<>();
+    private Set<Integer> discoveredRoomIds = new LinkedHashSet<>();
 
 
     public void setInventoryWeapons(List<Weapon> inventoryWeapons) {
@@ -37,6 +39,7 @@ public class Player {
         this.inventoryItems = new ArrayList<>();
         this.inventoryWeapons = new ArrayList<>();
         this.discardedItems = new ArrayList<>();
+        this.discoveredRoomIds.add(initialRoom.getId());
 
         // Default stats
         stats.put("strength", 10);
@@ -211,15 +214,21 @@ public class Player {
             Room nextRoom = roomMap.get(roomId);
             if (nextRoom.canEnter(player)) {
                 currentRoom = nextRoom;
+                discoveredRoomIds.add(currentRoom.getId());
                 if (!currentRoom.getDescription().isEmpty()) {
                     Logic.printToUser(currentRoom.getDescription());
                 } else {
                     Logic.printToUser("Moved to " + currentRoom.getName());
                 }
+                showMap();
             }
         } else {
             Logic.printToUser("You cannot move in that direction from " + currentRoom.getName());
         }
+    }
+
+    public void showMap() {
+        MapView.print(roomMap, discoveredRoomIds, currentRoom.getId());
     }
 
     public List<Item> getInventoryItems() {

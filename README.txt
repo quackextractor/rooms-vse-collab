@@ -29,6 +29,7 @@ L            look around
 I            inventory and stats
 P            pick up an item
 D            discard an item
+M            map of discovered rooms
 H            help
 Q            quit
 

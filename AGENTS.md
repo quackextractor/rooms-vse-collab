@@ -39,8 +39,9 @@ Edit this file, not the README. `CHANGELOG.md` records what has actually shipped
 `rooms.csv` is the level, and it is data — the same data as `map.png`, in a format `MapLoader` parses by column position.
 
 - The format is `map guide.txt`. When the loader and the guide disagree, the guide is the specification and the loader is the bug.
-- Line 1 is a room. Columns are positional: `id, name, north, east, south, west` are mandatory, then description, items, enemies, warning message, weapons, conditions, isWinRoom, winMessage. Empty trailing columns are fine; a missing *leading* one silently shifts everything.
+- Line 1 is a room. Columns are positional: `id, name, north, east, south, west` are mandatory, then description, items, enemies, warning message, weapons, conditions, isWinRoom, winMessage, isSecret. Empty trailing columns are fine; a missing *leading* one silently shifts everything.
 - `-1` is a wall. Room `0` is the start. Room `11` is the win room and its `strength:30` condition is the only one that can end a run.
+- `isSecret` is the last column and defaults to false. A secret room stays off the map the player sees until the player walks into it, so the flag is the only thing hiding it - the name does not.
 - **A comma followed by a space is fine; a comma followed by anything else is not.** `MapLoader` splits on `,(?!\s)` — a comma *not* followed by whitespace — specifically so that "a nice room, full of nice things." survives as one column, which is how the guide's own example is written. What silently corrupts the map is a comma with no space after it: the column splits there, everything after shifts left, and the room loads as something that makes no sense rather than as an error.
 - Add a room to `rooms.csv` *and* to `map.png`. They are two views of one level and a map that disagrees with the game is worse than no map.
 - Enemies are listed as `Name:health:strength:agility`, semicolon-separated. Agility decides who strikes first: the player opens when their agility is higher than the enemy's, otherwise the enemy does. `Imp Assistant:15:5:30` has 15 health, hits first against a fresh player, and dies in three hits.
@@ -48,7 +49,7 @@ Edit this file, not the README. `CHANGELOG.md` records what has actually shipped
 ## Commands
 
 - A command is a `Command` implementing `execute()` and `undo()`. Movement, pick-up and discard are undoable through `PlayerController`'s stack; `L` is not, and its `undo()` says so rather than pretending.
-- Adding a command means three edits: the class, the `switch` in `PlayerController`, and the help text — which is written out twice, in `Main` and again in the `H` case. Update both or neither; they are already two copies of the same sentence.
+- Adding a command means three edits: the class, the `switch` in `PlayerController`, and the help text — which is written out twice, in `Game` and again in the `H` case. Update both or neither; they are already two copies of the same sentence.
 - All input goes through `utilities.Console.readLine()`, which owns the one `Scanner` over `System.in` and reports EOF instead of throwing. `PlayerController` and `Combat` share it. Do not create a second reader: one over the same stream buffers lines the other cannot see, which is what made scripted combat impossible and what the combat check in `smoke.sh` now guards.
 
 ## Commits

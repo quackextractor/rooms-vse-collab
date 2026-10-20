@@ -16,7 +16,7 @@ Or download a release zip and double-click `play.cmd` (`java -jar rooms.jar` fro
 
 `rooms.csv` must sit in the working directory. Its format is described in [map guide.txt](map%20guide.txt), the map itself in [map.png](map.png).
 
-Controls: `N/E/S/W` move, `L` look, `I` inventory, `P` pick up, `D` discard, `H` help, `Q` quit.
+Controls: `N/E/S/W` move, `L` look, `I` inventory, `P` pick up, `D` discard, `M` map, `H` help, `Q` quit.
 
 ## Docs
 

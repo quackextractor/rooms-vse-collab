@@ -12,7 +12,11 @@ CombatWarningMessage,
 WeaponName:Damage:StatType:Value;Weapon2...,
 RequiredStatTypeToEnterRoom:ValueOfStat:failMessage;Condition2...,
 <isWinRoom: write true/false here>,
-winMessage
+winMessage,
+<isSecret: write true/false here>
+
+The isSecret column is the last one. A secret room stays off the map the player sees until the player
+walks into it, so its flag is the only thing that keeps it hidden - the name does not.
 
 Example:
-1,Castle Entrance,2,-1,8,0,A nice room, full of nice things.,Shield:health:3;Cursed Amulet:health:-10,Skeleton:15:3:20;Bat:6:8:30,The ground rumbles...,Sword:10:strength:5;Bow:12:agility:10,strength:10:You need to be strong to pry the door;knowledge:5:Looks like you don't know how to handle a crowbar,true,You win!!!
+1,Castle Entrance,2,-1,8,0,A nice room, full of nice things.,Shield:health:3;Cursed Amulet:health:-10,Skeleton:15:3:20;Bat:6:8:30,The ground rumbles...,Sword:10:strength:5;Bow:12:agility:10,strength:10:You need to be strong to pry the door;knowledge:5:Looks like you don't know how to handle a crowbar,true,You win!!!,false

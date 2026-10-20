@@ -22,11 +22,13 @@ public class Game {
         PlayerController playerController = new PlayerController(player);
 
         Logic.printToUser("Enter direction (N, E, S, W) to move around, I to show inventory, " +
-                "P to pick up item, D to discard item, L to look around you or Q to quit. Press H to bring up this help.");
+                "P to pick up item, D to discard item, L to look around you, M to show the map " +
+                "or Q to quit. Press H to bring up this help.");
 
         Logic.printToUser("");
         // print description of starting room
         Logic.printToUser(initialRoom.getDescription());
+        player.showMap();
 
         // Game loop
         while (true) {
