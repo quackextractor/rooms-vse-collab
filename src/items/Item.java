@@ -17,10 +17,9 @@ public class Item {
 
     @Override
     public String toString() {
-        return "items.Item{" +
-                "name='" + getName() + '\'' +
-                ", type='" + '\'' +
-                '}';
+        return
+                name + " " +
+                stats;
     }
 
     public String getName() {
