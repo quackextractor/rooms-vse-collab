@@ -165,8 +165,8 @@ fi
 
 # The Secret Chamber is the cell between the Castle Lobby and the Crossroads. It is right next to
 # the room the player stands in, so it is the one cell a broken flag gives away: a hint, an exit the
-# player does not know about yet. The cell has to stay blank.
-if ! grep -qF '[   1][    ][*  5]' secret.log; then
+# player does not know about yet. The cell has to stay blank - the map draws an empty cell as space.
+if ! grep -qE '\[   1\] +\[\*  5\]' secret.log; then
     echo "[ERROR] smoke: the Secret Chamber is on the map. The cell between the Castle Lobby and the"
     echo "        Crossroads has to stay blank - a secret room is drawn only once the player is in it."
     exit 1
