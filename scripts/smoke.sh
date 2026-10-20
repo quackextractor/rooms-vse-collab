@@ -48,6 +48,22 @@ if grep -qi 'exception' smoke.log; then
     exit 1
 fi
 
+# The map of discovered rooms. It is printed when the game starts and again after every move, so
+# the scripted opening prints it twice: once for the room the player starts in, once for the room
+# they walk into. The cell the player stands in carries a *, so it reads [*  1] after moving east.
+map_count=$(grep -c 'Discovered map' smoke.log)
+if [ "$map_count" -ne 2 ]; then
+    echo "[ERROR] smoke: the map was printed $map_count times instead of twice. It belongs at the"
+    echo "        start of the game and after every move - check that Player.move calls showMap."
+    exit 1
+fi
+
+if ! grep -qF '[*  1]' smoke.log; then
+    echo "[ERROR] smoke: the map does not mark the room the player walked into. The current room is"
+    echo "        drawn with a *, so the cell should read [*  1] after moving east into room 1."
+    exit 1
+fi
+
 # The other way to start the game, and the one a player hits first: no stdin at all, which is what
 # double-clicking the jar produces. It used to end in a NoSuchElementException printed as a bare
 # "Exception caught:" with the stack trace on a stream nobody was watching. The check is that the
@@ -134,4 +150,50 @@ if ! grep -q 'warning message is an enemy definition' bad/bad.log; then
     exit 1
 fi
 
-echo "[OK]   smoke run passed (smoke.log, eof.log, combat.log, enemies.log, bad/bad.log)"
+# The Secret Chamber is flagged secret in rooms.csv, so it stays off the map until the player walks
+# into it. This walk ends in room 5, right next to it: the room is not on the map, and its id is
+# nowhere in the log. The flower, the scroll and the map item bring the wisdom to 30, which is what
+# the Secret Chamber asks for.
+printf 'P\nMagical Flower\nE\nP\nShield\nP\nSword\nN\nP\nScroll\nE\nY\nE\nY\nP\nMap\nS\nY\nQ\n' \
+    | java -cp ../classes Main > secret.log 2>&1 || true
+
+if grep -q '101' secret.log; then
+    echo "[ERROR] smoke: the Secret Chamber was drawn on the map before the player entered it."
+    echo "        The isSecret column in rooms.csv is what keeps it hidden - check that MapView"
+    echo "        leaves a secret room out and that the loader reads the flag."
+    exit 1
+fi
+
+# The Secret Chamber is the cell between the Castle Lobby and the Crossroads. It is right next to
+# the room the player stands in, so it is the one cell a broken flag gives away: a hint, an exit the
+# player does not know about yet. The cell has to stay blank.
+if ! grep -qF '[   1][    ][*  5]' secret.log; then
+    echo "[ERROR] smoke: the Secret Chamber is on the map. The cell between the Castle Lobby and the"
+    echo "        Crossroads has to stay blank - a secret room is drawn only once the player is in it."
+    exit 1
+fi
+
+if grep -qi 'exception' secret.log; then
+    echo "[ERROR] smoke: walking to the Crossroads threw."
+    grep -i -A 5 'exception' secret.log
+    exit 1
+fi
+
+# The same walk one step further west. The player is in the Secret Chamber now, so it belongs on the
+# map, drawn with the * that marks the current room.
+printf 'P\nMagical Flower\nE\nP\nShield\nP\nSword\nN\nP\nScroll\nE\nY\nE\nY\nP\nMap\nS\nY\nW\nQ\n' \
+    | java -cp ../classes Main > secret_found.log 2>&1 || true
+
+if ! grep -qF '[*101]' secret_found.log; then
+    echo "[ERROR] smoke: the Secret Chamber did not show up on the map after the player entered it."
+    echo "        The current room is drawn with a *, so the cell should read [*101]."
+    exit 1
+fi
+
+if grep -qi 'exception' secret_found.log; then
+    echo "[ERROR] smoke: entering the Secret Chamber threw."
+    grep -i -A 5 'exception' secret_found.log
+    exit 1
+fi
+
+echo "[OK]   smoke run passed (smoke.log, eof.log, combat.log, enemies.log, secret.log, secret_found.log, bad/bad.log)"

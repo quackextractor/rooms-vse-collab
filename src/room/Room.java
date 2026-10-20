@@ -15,6 +15,7 @@ public class Room {
     private String description;
     private String combatMessage;
     private boolean isWinRoom;
+    private boolean isSecret;
     private List<Item> items;
     private List<Weapon> weapons;
     private List<RoomCondition> conditions;
@@ -29,7 +30,7 @@ public class Room {
     private String winMessage;
 
     public Room(int id, String name, String description, List<Item> items, List<Enemy> enemies, String combatMessage, List<Weapon> weapons,
-                List<RoomCondition> conditions, int north, int east, int south, int west, boolean isWinRoom, String winMessage) {
+                List<RoomCondition> conditions, int north, int east, int south, int west, boolean isWinRoom, String winMessage, boolean isSecret) {
         this.setId(id);
         this.setName(name);
         setDescription(description);
@@ -44,6 +45,7 @@ public class Room {
         this.setWest(west);
         this.setWinRoom(isWinRoom);
         this.setWinMessage(winMessage);
+        this.setSecret(isSecret);
         this.setAvailableItems(new ArrayList<>(items));
         getAvailableItems().addAll(weapons);
         this.setAvailableEnemies(new ArrayList<>(enemies));
@@ -75,6 +77,14 @@ public class Room {
 
     public void setWinRoom(boolean winRoom) {
         isWinRoom = winRoom;
+    }
+
+    public boolean isSecret() {
+        return isSecret;
+    }
+
+    public void setSecret(boolean secret) {
+        isSecret = secret;
     }
 
     public int getId() {

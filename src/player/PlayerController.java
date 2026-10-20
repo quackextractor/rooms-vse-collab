@@ -62,15 +62,19 @@ public class PlayerController {
             case "L":
                 executeCommand(new ShowItemsCommand(player));
                 break;
+            case "M":
+                player.showMap();
+                break;
             case "Q":
                 Logic.printToUser("Quitting. Goodbye!");
                 System.exit(0);
             case "H":
                 Logic.printToUser("Enter direction (N, E, S, W), I to show inventory, " +
-                        "P to pick up item, D to discard item, L to look around you or Q to quit. Press H to bring up this help.");
+                        "P to pick up item, D to discard item, L to look around you, M to show the map " +
+                        "or Q to quit. Press H to bring up this help.");
                 break;
             default:
-                Logic.printToUser("Invalid input. Please enter N, E, S, W, I, P, D, H or Q.");
+                Logic.printToUser("Invalid input. Please enter N, E, S, W, I, P, D, L, M, H or Q.");
         }
     }
 

@@ -51,8 +51,9 @@ public class MapLoader {
                 List<RoomCondition> conditions = parseConditions(parts.length > 11 ? parts[11] : "");
                 boolean isWinRoom = parts.length > 12 && Boolean.parseBoolean(parts[12]);       // add to csv file
                 String winMessage = (parts.length > 13) ? parts[13] : "";                       // add to csv file
+                boolean isSecret = parts.length > 14 && Boolean.parseBoolean(parts[14].trim());
 
-                Room room = new Room(id, name, description, items, enemies, warningMessage, weapons, conditions, north, east, south, west, isWinRoom, winMessage);
+                Room room = new Room(id, name, description, items, enemies, warningMessage, weapons, conditions, north, east, south, west, isWinRoom, winMessage, isSecret);
                 roomMap.put(id, room);
             }
         } catch (FileNotFoundException e) {
