@@ -9,6 +9,7 @@ import utilities.Logic;
 import java.util.ArrayList;
 import java.util.List;
 
+// oh my god
 public class Room {
     private int id;
     private String name;
