@@ -36,17 +36,8 @@ if [ ! -d out/classes ]; then
     exit 1
 fi
 
-version=$(grep -a -o '^## \[[0-9][^]]*\]' CHANGELOG.md \
-    | head -1 \
-    | sed 's/^## \[//; s/\]$//')
-
-if [ -z "$version" ]; then
-    echo "[ERROR] CHANGELOG.md has no released version heading, so there is nothing to package as."
-    exit 1
-fi
-
 mkdir -p out/dist
-rm -f out/dist/rooms.jar "out/dist/rooms-$version.zip"
+rm -f out/dist/rooms.jar out/dist/rooms.zip
 
 # `jar` is not always on PATH. Oracle's javapath shims ship java, javac and javaw but no jar, so a
 # machine with a perfectly good JDK installed can fail on "jar: command not found". Ask the JVM where
@@ -83,8 +74,8 @@ cp README.txt out/dist/README.txt
 
 # --no-manifest: without it `jar` writes a META-INF/MANIFEST.MF into the zip as well, and the first
 # thing a player sees when they unpack a release is a folder of build plumbing they did not ask for.
-"$jar_tool" --create --file "out/dist/rooms-$version.zip" --no-manifest \
+"$jar_tool" --create --file out/dist/rooms.zip --no-manifest \
     -C out/dist rooms.jar -C out/dist rooms.csv -C out/dist map.png \
     -C out/dist play.cmd -C out/dist README.txt
 
-echo "[OK]   packaged out/dist/rooms.jar and out/dist/rooms-$version.zip (version $version)"
+echo "[OK]   packaged out/dist/rooms.jar and out/dist/rooms.zip"

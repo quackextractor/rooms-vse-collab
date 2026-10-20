@@ -4,14 +4,17 @@ name: release
 #
 #   gate     every push and every pull request: compile, then the scripted opening. Nothing is
 #            published unless this passes.
-#   release  push to master only: tag the version CHANGELOG.md names, build the artifact, create the
-#            GitHub release with it attached.
+#   release  push to master only: tag the commit, build the artifact, create the GitHub release with
+#            it attached.
 #
-# Publishing lives here rather than in hooks/post-commit because of when the two run. A local
-# post-commit fires while the commit exists only on this machine, so a tag pushed from there points at
-# an object the remote has never seen and the release renders with its source missing. This workflow
-# runs after the commit is on the remote, where tagging means what it says. It is also the only place
-# that can attach a build artifact to the release.
+# Publishing lives here rather than in a git hook because of when the two run. A local hook fires
+# while the commit exists only on this machine, so a tag pushed from there points at an object the
+# remote has never seen and the release renders with its source missing. This workflow runs after
+# the commit is on the remote, where tagging means what it says. It is also the only place that can
+# attach a build artifact to the release.
+#
+# There is no version number. A release is named after the commit it was built from, so the tag says
+# what the artifact is, and the same commit can be released again without a second tag to reconcile.
 
 on:
   push:
@@ -62,47 +65,38 @@ jobs:
           sh scripts/smoke.sh
           sh scripts/package.sh
 
-      - name: Read the newest released version from CHANGELOG.md
-        id: version
+      # The tag names the commit, so it is the same for every run of this workflow on this commit and
+      # a rerun finds the release it made last time instead of making a second one.
+      - name: Name the release after the commit
+        id: tag
         run: |
-          version=$(grep -m 1 -o '^## \[[0-9][^]]*\]' CHANGELOG.md | sed 's/^## \[//; s/\]$//')
-          echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "CHANGELOG.md says the current version is $version"
+          short=$(echo "$GITHUB_SHA" | cut -c1-8)
+          tag="build-$short"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "the release is named $tag"
 
       - name: Create the release, if it does not exist
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          version="${{ steps.version.outputs.version }}"
-
-          if [ -z "$version" ]; then
-            echo "[INFO] no released version heading in CHANGELOG.md, nothing to release."
-            exit 0
-          fi
+          tag="${{ steps.tag.outputs.tag }}"
 
           # Idempotent by release rather than by tag: if someone pushed the tag without the release,
           # `gh release create --verify-tag` would attach it, and if both exist there is nothing to do.
-          if gh release view "v$version" > /dev/null 2>&1; then
-            echo "[INFO] release v$version already exists, nothing to do."
+          if gh release view "$tag" > /dev/null 2>&1; then
+            echo "[INFO] release $tag already exists, nothing to do."
             exit 0
           fi
 
-          git tag "v$version" "$GITHUB_SHA"
-          git push origin "refs/tags/v$version"
+          git tag "$tag" "$GITHUB_SHA"
+          git push origin "refs/tags/$tag"
 
-          # The changelog section for this version, as the release notes. Everything below the next
-          # heading goes with it, along with the html comment and the reference link definitions -
-          # `0.1.0: https://...` is markdown plumbing and reads as noise on a release page.
-          sed -e "1,/^## \[$version\]/d" \
-            -e '/^<!--/,/-->/d' \
-            -e '/^\[\(Unreleased\|[0-9][^]]*\)\]:/d' \
-            -e '/^## \[/,$d' \
-            CHANGELOG.md > notes.md
-
-          gh release create "v$version" \
-            --title "v$version" \
-            --notes-file notes.md \
+          # The commits since the last release, as the release notes. There is no changelog to slice
+          # up, so the history is what says what this build is.
+          gh release create "$tag" \
+            --title "Rooms $tag" \
+            --generate-notes \
             --verify-tag \
-            "out/dist/rooms-$version.zip"
+            "out/dist/rooms.zip"
 
-          echo "[OK] released v$version with out/dist/rooms-$version.zip attached."
+          echo "[OK] released $tag with out/dist/rooms.zip attached."

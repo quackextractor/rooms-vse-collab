@@ -27,9 +27,9 @@ mkdir -p out/classes
 # while the file itself is never compiled at all.
 git ls-files --cached --others --exclude-standard -- 'src/*.java' > out/sources.txt
 
-# -encoding UTF-8 is not optional: the map, the changelog and any Czech text in a room description are
-# all non-ASCII, and javac falls back to the platform default without it, which is a different answer
-# on every machine.
+# -encoding UTF-8 is not optional: the map and any Czech text in a room description are non-ASCII,
+# and javac falls back to the platform default without it, which is a different answer on every
+# machine.
 #
 # --release 17 and not the JDK that happens to be installed. Without it the class files carry the
 # compiler's own version - 68 under JDK 24 - so the released jar refuses to start on the Java 17 or 21

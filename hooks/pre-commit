@@ -1,23 +1,13 @@
 #!/bin/sh
 #
-# Pre-commit gate: sync the version badge, refuse a changelog link with no tag, then build and smoke.
+# Pre-commit gate: build, smoke-test, and refuse the commit if either fails.
 #
-# Installed by install-hooks.ps1; the tracked copy lives in hooks/ beside post-commit. .git/hooks is not
-# in the repository, so a fresh clone has to run the installer once before its first commit.
+# Installed by install-hooks.ps1; the tracked copy lives in hooks/. .git/hooks is not in the
+# repository, so a fresh clone has to run the installer once before its first commit.
 #
-# Three checks, in order of cost. The two version checks run first because they are instant and their
-# failures are trivially fixable - there is no reason to spend the build's time to then find out the
-# commit would have been refused for a version number.
-#
-# The badge is corrected and re-staged rather than refused, because a wrong badge is a two-character
-# typo and refusing a commit over one trains people into --no-verify, which would also switch off the
-# build. A changelog link pointing at a tag that does not exist is the other way round: that is a lie
-# in a document people trust, it cannot be repaired without knowing which version was meant, and it is
-# exactly the failure this repository already shipped once. So that one refuses.
-#
-# The build and the smoke run abort the commit. Neither is ever bypassed: a hook that can be skipped
-# with --no-verify is a suggestion, and the value here is that a broken tree stops the commit rather
-# than being noticed by whoever runs the game next.
+# The build and the smoke run abort the commit. The gate is never bypassed: a hook that can be
+# skipped with --no-verify is a suggestion, and the value here is that a broken tree stops the commit
+# rather than being noticed by whoever runs the game next.
 
 set -e
 
@@ -42,97 +32,8 @@ fi
 
 cd "$repo_root"
 
-# A NUL or a stray control byte anywhere in the two files makes grep read them as binary and print
-# "Binary file CHANGELOG.md matches" instead of the matches. `$(...)` captures that, the pattern
-# below does not match it, and the garbage is written straight into a README badge - which is how
-# this repository's badge once came to read "version-Binary file CHANGELOG.md matches-blue.svg".
-# `-a` below removes the failure mode; this refuses rather than repairs, because a file with a control
-# byte in it is a bug in whatever wrote it and a badge that silently absorbs the bug hides it.
-for md in README.md CHANGELOG.md; do
-    if LC_ALL=C tr -d '\11\12\15\40-\376' < "$md" | grep -q . 2>/dev/null; then
-        echo "[ERROR] $md carries a control byte, so the version checks below cannot be trusted."
-        exit 1
-    fi
-done
-
-# BSD and GNU sed disagree about -i, so every file below is rewritten rather than edited in place. One
-# extra temp file in a hook that runs once per commit costs nothing; a sed that works on the
-# developer's machine and silently does nothing on CI is worth more.
-set_badge() {
-    # $1 file, $2 badge label, $3 value the badge carries, $4 value it should carry
-    _file="$1"; _label="$2"; _have="$3"; _want="$4"
-
-    if [ -z "$_have" ]; then
-        echo "[ERROR] no '$_label' badge found in $_file."
-        echo "        A README without the badge cannot be kept in sync, which is the job it exists for."
-        return 1
-    fi
-
-    if [ "$_have" = "$_want" ]; then
-        return 0
-    fi
-
-    echo "[INFO] $_file '$_label' badge says $_have, CHANGELOG.md says $_want. correcting it."
-    sed "s|img.shields.io/badge/$_label-$_have-blue.svg|img.shields.io/badge/$_label-$_want-blue.svg|g" \
-        "$_file" > "$_file.tmp"
-    mv "$_file.tmp" "$_file"
-    git add "$_file"
-    echo "[OK]   $_file '$_label' badge updated to $_want and staged."
-    return 0
-}
-
-read_badge() {
-    # $1 file, $2 badge label. First match wins.
-    grep -a -o "img.shields.io/badge/$2-[0-9][^-]*-blue.svg" "$1" \
-        | head -1 \
-        | sed "s|.*$2-||; s|-blue.svg||"
-}
-
-# ---------------------------------------------------------------------- the version
-
-# CHANGELOG.md is the single source of truth. The newest heading that starts with a digit is the
-# version; 'Unreleased' does not match, so an unreleased section above it is skipped rather than read
-# as the current version. Nothing written by hand anywhere else may outvote this file.
-version=$(grep -a -o '^## \[[0-9][^]]*\]' CHANGELOG.md \
-    | head -1 \
-    | sed 's/^## \[//; s/\]$//')
-
-if [ -z "$version" ]; then
-    echo "[ERROR] no released version heading in CHANGELOG.md. Expected a line like '## [0.2.0] - 2026-10-19'."
-    exit 1
-fi
-
-set_badge README.md 'version' "$(read_badge README.md 'version')" "$version"
-
-# ---------------------------------------------------------------------- changelog links
-
-# Every reference definition in the changelog has to name a version that is published or pending.
-# Definitions are written by hooks/post-commit: a published version because its tag exists, the newest
-# version because the release is made by CI from the next push. Anything else - a link to a version
-# that was never released, typed by hand - is a lie in the document people trust to say what shipped,
-# and it cannot be repaired without knowing which version was meant. So that one refuses.
-newest_version=$(grep -a -o '^## \[[0-9][^]]*\]' CHANGELOG.md \
-    | head -1 \
-    | sed 's/^## \[//; s/\]$//')
-
-for linked in $(grep -a -o '^\[[0-9][^]]*\]:' CHANGELOG.md | sed 's/^\[//; s/\]:$//'); do
-    if [ "$linked" = "$newest_version" ]; then
-        continue
-    fi
-
-    if ! git rev-parse -q --verify "refs/tags/v$linked" > /dev/null 2>&1; then
-        echo "[ERROR] CHANGELOG.md links version $linked, but there is no v$linked tag."
-        echo "        Either the release never happened, or the link was written by hand."
-        echo "        post-commit links a version once it is tagged; delete the definition and"
-        echo "        post-commit will restore it when the tag exists."
-        exit 1
-    fi
-done
-
-# ---------------------------------------------------------------------- build and smoke
-
 # Do not run these by hand before committing. This hook runs them, which is why they are cheap enough
-# to run on every commit: javac over 22 files, then a 16-line scripted opening.
+# to run on every commit: javac over every file under src/, then the scripted opening.
 echo "[INFO] building and smoke-testing"
 
 if ! sh scripts/build.sh; then
