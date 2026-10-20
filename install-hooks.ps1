@@ -4,22 +4,12 @@
 
 .DESCRIPTION
     .git/hooks is not tracked by git, so a hook written there exists only on the machine that wrote
-    it. This installs the tracked copies from hooks/ and makes them executable, which is what a fresh
+    it. This installs the tracked copy from hooks/ and makes it executable, which is what a fresh
     clone needs before its first commit.
 
-    Two hooks, with deliberately different authority.
-
-      pre-commit - syncs the README version badge to CHANGELOG.md, refuses a changelog link naming a
-        version that was never published, then runs `scripts/build.sh` and `scripts/smoke.sh`.
-        Corrects the badge and re-stages it rather than refusing; refuses everything else. Aborts the
-        commit.
-
-      post-commit - rewrites the reference link block at the foot of CHANGELOG.md, so every version
-        links to its real release, and commits it separately so it reverts on its own. It does not
-        tag and it does not publish: that is GitHub Actions' job, because a local post-commit fires
-        before the commit is on the remote and a tag pushed from here has no source for GitHub to
-        show. Neither hook is meant to be bypassed with --no-verify: a gate that can be skipped is a
-        suggestion, and --no-verify would switch off the build as well as the version checks.
+    One hook: pre-commit runs `scripts/build.sh` and `scripts/smoke.sh` and refuses the commit if
+    either fails. It is not meant to be bypassed with --no-verify: a gate that can be skipped is a
+    suggestion, and --no-verify would switch off the build as well.
 
     Run it once per clone. Re-run it after pulling if anything under hooks/ changes.
 #>
@@ -35,7 +25,7 @@ if (-not (Test-Path (Join-Path $repoRoot '.git'))) {
     exit 1
 }
 
-$installed = @('pre-commit', 'post-commit')
+$installed = @('pre-commit')
 
 foreach ($name in $installed) {
     $source = Join-Path $repoRoot "hooks/$name"
@@ -68,8 +58,7 @@ foreach ($name in $installed) {
     Write-Host "[OK]   installed $target"
 }
 
-Write-Host "[INFO] pre-commit syncs the README badge to CHANGELOG.md, refuses a link to a release"
-Write-Host "[INFO] that was never published, then runs scripts/build.sh and scripts/smoke.sh."
-Write-Host "[INFO] post-commit rewrites the changelog links and commits them separately. Publishing"
-Write-Host "[INFO] is not local: pushing to master is, via .github/workflows/release.yml."
-Write-Host "[INFO] remove the hooks with: Remove-Item .git/hooks/pre-commit, .git/hooks/post-commit"
+Write-Host "[INFO] pre-commit runs scripts/build.sh and scripts/smoke.sh and refuses the commit if"
+Write-Host "[INFO] either fails. Publishing is not local: pushing to master is, via"
+Write-Host "[INFO] .github/workflows/release.yml."
+Write-Host "[INFO] remove the hook with: Remove-Item .git/hooks/pre-commit"

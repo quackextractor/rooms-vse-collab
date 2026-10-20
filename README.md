@@ -1,7 +1,6 @@
 # Rooms
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-0.1.3-blue.svg)](CHANGELOG.md)
 
 A small text adventure in Java. Explore rooms, fight enemies, collect items and reach the village of Villedor.
 
@@ -27,6 +26,6 @@ Martin Morávek VŠE
 
 ## Releases
 
-`CHANGELOG.md` is the version. Pushing to `master` publishes: `.github/workflows/release.yml` tags `v<version>`, builds `rooms.jar`, and attaches the zip to the GitHub release. Unzip it and run `java -jar rooms.jar`. See [AGENTS.md](AGENTS.md).
+Pushing to `master` publishes: `.github/workflows/release.yml` builds `rooms.jar`, tags the commit and attaches the zip to the GitHub release. Unzip it and run `java -jar rooms.jar`. See [AGENTS.md](AGENTS.md).
 
 MIT licensed.

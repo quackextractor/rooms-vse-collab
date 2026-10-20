@@ -19,8 +19,7 @@ cd "$(git -C "$script_dir" rev-parse --show-toplevel)"
 
 # Played from out/smoke rather than from the repository root. Logic.printToUser appends every line it
 # prints to log.txt in the working directory, and log.txt is tracked, so running the game at the root
-# would leave the tree dirty after every commit - which in turn makes post-commit skip its work and
-# quietly turns the release flow into a no-op.
+# would leave the tree dirty after every commit.
 rm -rf out/smoke
 mkdir -p out/smoke
 cp rooms.csv out/smoke/rooms.csv

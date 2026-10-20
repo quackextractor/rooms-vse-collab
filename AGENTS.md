@@ -1,7 +1,7 @@
 # Agent Directives
 
 Project rules for Rooms. Loaded automatically on every request.
-Edit this file, not the README. `CHANGELOG.md` records what has actually shipped.
+Edit this file, not the README.
 
 ## Environment
 
@@ -12,7 +12,7 @@ Edit this file, not the README. `CHANGELOG.md` records what has actually shipped
 
 ## Validation
 
-- `sh scripts/build.sh` compiles every file under `src/` with `javac`, tracked or not. `sh scripts/smoke.sh` runs three headless checks: the scripted opening, the no-terminal path, and one combat prompt. `sh scripts/package.sh` builds the release artifact and refuses to run without a version in the changelog.
+- `sh scripts/build.sh` compiles every file under `src/` with `javac`, tracked or not. `sh scripts/smoke.sh` runs three headless checks: the scripted opening, the no-terminal path, and one combat prompt. `sh scripts/package.sh` builds the release artifact.
 - **Do not run the first two before committing.** `hooks/pre-commit` runs both and refuses the commit if either fails, so running them first spends the same two seconds twice and changes nothing. `package.sh` is not in the hook, so run it when the release artifact or the `Main-Class` matters.
 - Run the smoke check when the change touches `MapLoader`, `rooms.csv`, items, stats, or `RoomCondition`, and watch it fail when you break what it guards. A gate you have not seen go red is a gate you have not tested.
 - The smoke run covers the opening, the missing-terminal path and a combat prompt — not a whole game. There is no test framework and adding one for this project is not a trade worth making; extend `smoke.sh` instead when a change needs a check that does not exist.
@@ -29,7 +29,7 @@ Edit this file, not the README. `CHANGELOG.md` records what has actually shipped
 ## Code documentation
 
 - Write no comments in code. Not `//`, not `/* */`, not Javadoc, not license headers, not prose annotations. Naming carries meaning; a comment restating the line below it is noise.
-- No comment blocks in source. The prose belongs in this file and in `CHANGELOG.md`, which is where a reader looks for it.
+- No comment blocks in source. The prose belongs in this file, which is where a reader looks for it.
 - If a comment is unavoidable, one short line, and only for something the code cannot say: a non-obvious invariant, a workaround, a format note.
 - When existing code carries lengthy comments, delete them as part of the change that touches that code. `ShowItemsCommand.undo()`, `Combat.warn`, and `Player` are the places to start.
 - Do not create extra `.md` files to explain code.
@@ -59,15 +59,12 @@ Edit this file, not the README. `CHANGELOG.md` records what has actually shipped
 - After three failed attempts on a build or a fix, stop and report each attempt with the exact error and the diagnosis. Never disable the smoke check to force a pass.
 - **Describe the change, not the author.** No `Co-Authored-By:`, no `Generated with`, no tool name, no model name, no `noreply@` address. Conventional Commits is a spec for the change; a trailer naming a tool is not part of it.
 
-## Versioning
+## Releases
 
-- `CHANGELOG.md` is the single source of truth. The newest `## [x.y.z]` heading is the version; `Unreleased` does not count.
-- **Pushing to `master` publishes.** `.github/workflows/release.yml` gates on `scripts/build.sh` + `scripts/smoke.sh`, then tags `v<x.y.z>`, builds `scripts/package.sh` output and attaches it to the GitHub release. It is idempotent per release and never moves a tag. Nothing local publishes anything.
+- **Pushing to `master` publishes.** `.github/workflows/release.yml` gates on `scripts/build.sh` + `scripts/smoke.sh`, then tags the commit as `build-<short sha>`, builds `scripts/package.sh` output and attaches it to the GitHub release. It is idempotent per commit and never moves a tag. Nothing local publishes anything.
+- There is no version number and no changelog. A release is named after the commit it was built from, and the commit history says what changed.
 - Tags belong to CI alone. Do not create them in a hook: a local tag and a CI tag land on different commits and `git fetch --tags` refuses to reconcile them.
-- `hooks/pre-commit` syncs the README `version-` badge to the changelog and refuses a link to a version that is neither tagged nor the newest heading. `hooks/post-commit` writes that link block — published versions from tags, the newest version as pending — and commits it separately. It touches no network.
-- **`git fetch --tags` after CI publishes.** The block is built from local tags, so a release the clone has not fetched loses its link on the next commit, and the hook has no way to know it exists.
-- To ship: rename `Unreleased` to the new version with today's date, write the section, commit, push. CI does the rest.
-- `install-hooks.ps1` installs both hooks; `.git/hooks` is not tracked, so a fresh clone needs it once.
+- `install-hooks.ps1` installs the pre-commit hook; `.git/hooks` is not tracked, so a fresh clone needs it once.
 
 ## Artefacts
 
