@@ -22,6 +22,9 @@ Controls: `N/E/S/W` move, `L` look, `I` inventory, `P` pick up, `D` discard, `H`
 
 [Česká dokumentace (Google Docs)](https://docs.google.com/document/d/1T-GgtVTeWU5gGcM30NfqiNvnhVv8UQBvjJlyul5rVAU/edit?usp=sharing)
 
+## Playtester
+Martin Morávek VŠE
+
 ## Releases
 
 `CHANGELOG.md` is the version. Pushing to `master` publishes: `.github/workflows/release.yml` tags `v<version>`, builds `rooms.jar`, and attaches the zip to the GitHub release. Unzip it and run `java -jar rooms.jar`.
