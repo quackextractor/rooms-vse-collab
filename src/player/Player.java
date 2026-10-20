@@ -12,7 +12,7 @@ public class Player {
     private Map<Integer, Room> roomMap;
     private List<Item> inventoryItems;
     private List<Weapon> inventoryWeapons;
-    private Map<String, Integer> stats = new HashMap<>();
+    private Map<String, Integer> stats = new LinkedHashMap<>();
     private List<String> existingStats = new ArrayList<>();
 
 
@@ -78,7 +78,12 @@ public class Player {
     }
 
     public void showStats() {
-        Logic.printToUser("Current player stats: " + stats);
+        Logic.printToUser("Stats:");
+        for (Map.Entry<String, Integer> stat : stats.entrySet()) {
+            String name = stat.getKey();
+            String capitalised = name.substring(0, 1).toUpperCase() + name.substring(1);
+            Logic.printToUser("  " + capitalised + " " + stat.getValue());
+        }
     }
 
     private void applyStatIncrease(String statName, int value) {
