@@ -12,11 +12,8 @@ public class Weapon extends Item {
 
     @Override
     public String toString() {
-        return "items.Weapon{" +
-                "name='" + getName() + '\'' +
-                ", type='" + '\'' +
-                ", damage=" + getDamage() +
-                '}';
+        String base = super.toString();
+        return base.substring(0, base.length() - 1) + ", damage " + getDamage() + "}";
     }
 
     public int getDamage() {
