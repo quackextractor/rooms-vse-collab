@@ -11,6 +11,7 @@ import java.util.Set;
 
 public class MapView {
     private static final int LABEL_WIDTH = 4;
+    private static final int CELL_WIDTH = LABEL_WIDTH + 2;
     private static final int[][] STEPS = {{0, -1}, {1, 0}, {0, 1}, {-1, 0}};
 
     private MapView() {
@@ -47,9 +48,13 @@ public class MapView {
             StringBuilder line = new StringBuilder();
             for (int column = minColumn; column <= maxColumn; column++) {
                 String label = cells.get(key(column, row));
-                line.append("[").append(label == null ? spaces(LABEL_WIDTH) : label).append("]");
+                if (label == null) {
+                    line.append(spaces(CELL_WIDTH));
+                } else {
+                    line.append("[").append(label).append("]");
+                }
             }
-            Logic.printToUser(line.toString());
+            Logic.printToUser(stripTrailingSpaces(line.toString()));
         }
     }
 
@@ -125,6 +130,14 @@ public class MapView {
 
     private static String rightAlign(String text, int width) {
         return spaces(width - text.length()) + text;
+    }
+
+    private static String stripTrailingSpaces(String text) {
+        int end = text.length();
+        while (end > 0 && text.charAt(end - 1) == ' ') {
+            end--;
+        }
+        return text.substring(0, end);
     }
 
     private static String spaces(int width) {
