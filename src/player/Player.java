@@ -69,7 +69,7 @@ public class Player {
         Logic.printToUser("Items in the current room:");
         List<Item> availableItems = currentRoom.getAvailableItems();
         for (Item item : availableItems) {
-            Logic.printToUser("- " + item.getName() + item.getStats());
+            Logic.printToUser(item.toString());
         }
 
         if (availableItems.isEmpty()) {
