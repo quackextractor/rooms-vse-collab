@@ -69,8 +69,8 @@ public class Player {
     public void showItemsInRoom() {
         Logic.printToUser("Items in the current room:");
         List<Item> availableItems = currentRoom.getAvailableItems();
-        for (Item item : availableItems) {
-            Logic.printToUser(item.toString());
+        for (int i = 0; i < availableItems.size(); i++) {
+            Logic.printToUser((i + 1) + ". " + availableItems.get(i));
         }
 
         if (availableItems.isEmpty()) {
@@ -191,8 +191,8 @@ public class Player {
         Logic.printToUser("Inventory:");
         Logic.printToUser("Items:");
         if (inventoryItems != null && !inventoryItems.isEmpty()) {
-            for (Item item : inventoryItems) {
-                Logic.printToUser("- " + item.getName() + item.getStats());
+            for (int i = 0; i < inventoryItems.size(); i++) {
+                Logic.printToUser((i + 1) + ". " + inventoryItems.get(i).getName() + inventoryItems.get(i).getStats());
             }
         }
         if (inventoryWeapons != null && !inventoryWeapons.isEmpty()) {

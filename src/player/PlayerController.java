@@ -6,6 +6,7 @@ import items.Item;
 import utilities.Console;
 import utilities.Logic;
 
+import java.util.List;
 import java.util.Stack;
 
 public class PlayerController {
@@ -101,41 +102,38 @@ public class PlayerController {
     }
 
     private void pickUpItem() {
-        Logic.printToUser("Enter the name of the item you want to pick up: ");
-        String itemName = Console.readLine();
-        Item item = findItemInRoom(itemName);
+        player.showItemsInRoom();
+        Logic.printToUser("Enter the number or name of the item you want to pick up: ");
+        Item item = findItem(player.getCurrentRoom().getAvailableItems(), Console.readLine());
         if (item != null) {
-            Command pickUpCommand = new PickUpItemCommand(player, item);
-            executeCommand(pickUpCommand);
+            executeCommand(new PickUpItemCommand(player, item));
         } else {
-            Logic.printToUser("Item not found in the room.");
+            Logic.printToUser("No such item. Type its number or its name as listed above.");
         }
     }
 
     private void discardItem() {
-        Logic.printToUser("Enter the name of the item you want to discard: ");
-        String itemName = Console.readLine();
-        Item item = findItemInInventory(itemName);
+        player.showInventory();
+        Logic.printToUser("Enter the number or name of the item you want to discard: ");
+        Item item = findItem(player.getInventoryItems(), Console.readLine());
         if (item != null) {
-            Command discardCommand = new DiscardItemCommand(player, item);
-            executeCommand(discardCommand);
+            executeCommand(new DiscardItemCommand(player, item));
         } else {
-            Logic.printToUser("Item not found in the inventory.");
+            Logic.printToUser("No such item. Type its number or its name as listed above.");
         }
     }
 
-    private Item findItemInRoom(String itemName) {
-        for (Item item : player.getCurrentRoom().getAvailableItems()) {
-            if (item.getName().equalsIgnoreCase(itemName)) {
-                return item;
+    private Item findItem(List<Item> items, String input) {
+        try {
+            int number = Integer.parseInt(input.trim());
+            if (number >= 1 && number <= items.size()) {
+                return items.get(number - 1);
             }
+        } catch (NumberFormatException notANumber) {
         }
-        return null;
-    }
 
-    private Item findItemInInventory(String itemName) {
-        for (Item item : player.getInventoryItems()) {
-            if (item.getName().equalsIgnoreCase(itemName)) {
+        for (Item item : items) {
+            if (item.getName().equalsIgnoreCase(input.trim())) {
                 return item;
             }
         }
