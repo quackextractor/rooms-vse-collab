@@ -12,6 +12,24 @@ import java.util.Stack;
 public class PlayerController {
     private Player player;
     private static Stack<Command> commandHistory;
+    private static final List<String> HELP_ACTIONS = List.of(
+            "Enter direction (N, E, S, W) to move around",
+            "I to show inventory",
+            "P to pick up item",
+            "D to discard item",
+            "L to look around you",
+            "Q to quit"
+    );
+
+    public static void printHelp() {
+        Logic.printToUser("You can do the following actions:");
+        Logic.printToUser("");
+        for (String action : HELP_ACTIONS) {
+            Logic.printToUser("- " + action);
+        }
+        Logic.printToUser("");
+        Logic.printToUser("Press H to bring up this help.");
+    }
 
     public PlayerController(Player player) {
         this.player = player;
@@ -69,9 +87,7 @@ public class PlayerController {
                 Logic.printToUser("Quitting. Goodbye!");
                 System.exit(0);
             case "H":
-                Logic.printToUser("Enter direction (N, E, S, W), I to show inventory, " +
-                        "P to pick up item, D to discard item, L to look around you, M to show the map " +
-                        "or Q to quit. Press H to bring up this help.");
+                printHelp();
                 break;
             default:
                 Logic.printToUser("Invalid input. Please enter N, E, S, W, I, P, D, L, M, H or Q.");
