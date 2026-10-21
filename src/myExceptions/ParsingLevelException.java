@@ -5,4 +5,7 @@ public class ParsingLevelException extends Exception {
         super(errorMessage);
     }
 
+    public ParsingLevelException(String errorMessage, Throwable cause) {
+        super(errorMessage, cause);
+    }
 }
