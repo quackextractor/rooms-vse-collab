@@ -149,6 +149,41 @@ if ! grep -q 'warning message is an enemy definition' bad/bad.log; then
     exit 1
 fi
 
+# A broken map is refused as a ParsingLevelException with its reason, never as some other exception.
+refuse_map() {
+    if ( cd "$1" && java -cp ../../classes Main > "$1.log" 2>&1 ); then
+        echo "[ERROR] smoke: the $1 map loaded anyway."
+        exit 1
+    fi
+    if ! grep -qF "$2" "$1/$1.log" || grep -q 'Unexpected error' "$1/$1.log"; then
+        echo "[ERROR] smoke: the $1 map was refused, but not with \"$2\"."
+        tail -n 5 "$1/$1.log"
+        exit 1
+    fi
+}
+
+mkdir -p missing nan noroom0 badexit duplicate emptystat bom
+refuse_map missing 'File not found: rooms.csv'
+sed '3s/^2,/x2,/' rooms.csv > nan/rooms.csv
+refuse_map nan 'Invalid map formatting at line 3'
+sed '1d' rooms.csv > noroom0/rooms.csv
+refuse_map noroom0 'no room 0'
+sed '1s/^0,Castle Harbour,-1,1,/0,Castle Harbour,-1,99,/' rooms.csv > badexit/rooms.csv
+refuse_map badexit 'exit to room 99'
+sed '$a 1,Fake,-1,-1,-1,-1,A duplicate.' rooms.csv > duplicate/rooms.csv
+refuse_map duplicate 'Room id 1 is used by more than one room'
+sed 's/Magical Flower:wisdom:10/Magical Flower::10/' rooms.csv > emptystat/rooms.csv
+refuse_map emptystat 'Invalid item "Magical Flower::10"'
+
+{ printf '\357\273\277'; cat rooms.csv; } > bom/rooms.csv
+printf 'Q\n' | ( cd bom && java -cp ../../classes Main > bom.log 2>&1 ) || true
+
+if ! grep -q 'Once arriving at the docks' bom/bom.log; then
+    echo "[ERROR] smoke: a rooms.csv saved with a byte order mark no longer loads."
+    tail -n 5 bom/bom.log
+    exit 1
+fi
+
 # The Secret Chamber is flagged secret in rooms.csv, so it stays off the map until the player walks
 # into it. This walk ends in room 5, right next to it: the room is not on the map, and its id is
 # nowhere in the log. The flower, the scroll and the map item bring the wisdom to 30, which is what
@@ -195,4 +230,4 @@ if grep -qi 'exception' secret_found.log; then
     exit 1
 fi
 
-echo "[OK]   smoke run passed (smoke.log, eof.log, combat.log, enemies.log, secret.log, secret_found.log, bad/bad.log)"
+echo "[OK]   smoke run passed (smoke.log, eof.log, combat.log, enemies.log, secret.log, secret_found.log, bad/bad.log and the refused maps)"
