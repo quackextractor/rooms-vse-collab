@@ -1,17 +1,6 @@
-import commands.Command;
-import commands.*;
 import init.Game;
-import items.Item;
 import myExceptions.ParsingLevelException;
-import player.Player;
-import player.PlayerController;
-import room.Room;
-import utilities.*;
-
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import utilities.Logic;
 
 public class Main {
     public static void main(String[] args) {

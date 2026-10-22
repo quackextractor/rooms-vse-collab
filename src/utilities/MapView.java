@@ -2,12 +2,7 @@ package utilities;
 
 import room.Room;
 
-import java.util.ArrayDeque;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class MapView {
     private static final int LABEL_WIDTH = 4;

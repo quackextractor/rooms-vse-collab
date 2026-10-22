@@ -1,11 +1,11 @@
 package enemy;
 
 import items.Weapon;
-import player.*;
+import player.Player;
+import player.PlayerController;
 import utilities.Console;
 import utilities.Logic;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,7 +28,7 @@ public class Combat {
                 break;
             } else if (input.equalsIgnoreCase("Y")) {
 
-                for (int i = 0; i<enemies.size(); i++) {
+                for (int i = 0; i < enemies.size(); i++) {
                     fight(player, enemies.get(i));
 
                     if (enemies.get(i).getHealth() <= 0) {
@@ -52,7 +52,7 @@ public class Combat {
         }
     }
 
-    private static void winDuel(Player player, Enemy enemy){
+    private static void winDuel(Player player, Enemy enemy) {
         Logic.printToUser("You have successfully defeated " + enemy.getName() + "!");
         player.getCurrentRoom().getAvailableEnemies().remove(enemy);
     }
@@ -83,13 +83,15 @@ public class Combat {
             player.setStatValue("health", player.getStatValue("health") - enemy.getStrength());
         }
     }
-    private static int calculateDamage(Player player){
+
+    private static int calculateDamage(Player player) {
         int damage = (player.getStatValue("strength"));
         for (Weapon weapon : player.getInventoryWeapons()) {
-           damage += weapon.getDamage();
+            damage += weapon.getDamage();
         }
         return damage;
     }
+
     private static void fight(Player player, Enemy enemy) {
         boolean isPlayerTurn = player.getStatValue("agility") > enemy.getAgility();
         while (enemy.getHealth() > 0 && player.getStatValue("health") > 0) {
