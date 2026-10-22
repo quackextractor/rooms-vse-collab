@@ -1,7 +1,6 @@
 package tests;
 
 import items.Item;
-import myExceptions.ParsingLevelException;
 import player.Player;
 import player.PlayerController;
 import room.Room;
@@ -18,12 +17,12 @@ public class GameSession {
     private final Player player;
     private final PlayerController controller;
 
-    public GameSession() throws ParsingLevelException {
+    public GameSession() throws Exception {
         this(0);
     }
 
-    public GameSession(int startRoomId) throws ParsingLevelException {
-        rooms = MapLoader.loadMap("rooms.csv");
+    public GameSession(int startRoomId) throws Exception {
+        rooms = MapLoader.loadMap(TestMap.write(TestMap.ROOMS));
         player = new Player(rooms.get(startRoomId), rooms);
         controller = new PlayerController(player);
     }
@@ -61,7 +60,7 @@ public class GameSession {
         return player.getInventoryItems().stream().map(Item::getName).anyMatch(itemName::equals);
     }
 
-    public boolean printed(String text) {
-        return output.toString().contains(text);
+    public boolean printed(String... lines) {
+        return output.toString().contains(String.join(System.lineSeparator(), lines));
     }
 }

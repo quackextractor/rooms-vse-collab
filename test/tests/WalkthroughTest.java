@@ -10,44 +10,26 @@ class WalkthroughTest {
     void thePlayerCanWinTheGame() throws Exception {
         GameSession game = new GameSession();
 
-        game.play("P", "Magical Flower", "E");
-        assertEquals("Castle Lobby", game.currentRoom());
+        game.play("P", "Book", "E");
+        assertEquals("Library", game.currentRoom());
+        assertEquals(20, game.stat("wisdom"));
 
-        game.play("P", "Shield", "P", "Sword", "N", "P", "Scroll", "P", "Potion");
-        assertEquals("L1", game.currentRoom());
-        assertEquals(45, game.stat("health"));
-        assertEquals(22, game.stat("strength"));
-
-        game.play("E", "Y");
-        assertEquals("L2", game.currentRoom());
-        assertTrue(game.printed("You have successfully defeated Gargoyle!"));
-
-        game.play("E", "Y", "P", "Axe", "P", "Map");
-        assertEquals("L3", game.currentRoom());
-        assertTrue(game.printed("You have successfully defeated Ghost!"));
-        assertEquals(30, game.stat("wisdom"));
-
-        game.play("S", "Y");
-        assertEquals("Crossroads", game.currentRoom());
-        assertTrue(game.printed("You have successfully defeated Spider!"));
-
-        game.play("W", "P", "Heavy Claymore");
-        assertEquals("Secret Chamber", game.currentRoom());
-        assertTrue(game.carries("Heavy Claymore"));
-
-        game.play("E", "E", "Y", "P", "Bow", "P", "Arrows");
-        assertEquals("Judgment Hall", game.currentRoom());
-        assertTrue(game.printed("You have successfully defeated Horseless Headless Knight!"));
-
-        game.play("E", "Y");
-        assertEquals("Large Flooded Room", game.currentRoom());
-        assertTrue(game.printed("You have successfully defeated Siren King!"));
+        game.play("P", "Sword", "P", "Potion");
+        assertEquals(15, game.stat("strength"));
+        assertEquals(40, game.stat("health"));
 
         game.play("E");
-        assertEquals("Large Flooded Room", game.currentRoom(), "the claymore leaves too little strength for the gates");
+        assertEquals("Library", game.currentRoom(), "the exit needs more strength than the sword gives");
 
-        game.play("D", "Heavy Claymore", "E");
-        assertEquals("Villedor", game.currentRoom());
+        game.play("N", "Y");
+        assertEquals("Arena", game.currentRoom());
+        assertTrue(game.printed("You have successfully defeated Goblin!"));
+
+        game.play("P", "Gauntlets");
+        assertEquals(30, game.stat("strength"));
+
+        game.play("S", "E");
+        assertEquals("Exit", game.currentRoom());
         assertTrue(game.player().getCurrentRoom().isWinRoom());
     }
 }
