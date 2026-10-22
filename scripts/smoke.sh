@@ -124,13 +124,13 @@ fi
 printf 'P\nMagical Flower\nE\nP\nShield\nP\nSword\nN\nE\nY\nE\nY\nS\nY\nE\n' \
     | java -cp ../classes Main > enemies.log 2>&1 || true
 
-if ! grep -q "name='Ghost'" enemies.log; then
+if ! grep -qF -- '- Ghost (health 40, strength 6, agility 7)' enemies.log; then
     echo "[ERROR] smoke: room 4 loaded no Ghost. Its row in rooms.csv is shifted - the enemy list"
     echo "        belongs in column 8, the warning message in column 9."
     exit 1
 fi
 
-if ! grep -q "name='Horseless Headless Knight'" enemies.log; then
+if ! grep -qF -- '- Horseless Headless Knight (health 30, strength 10, agility 3)' enemies.log; then
     echo "[ERROR] smoke: room 6 loaded no Horseless Headless Knight. Same shift as room 4."
     exit 1
 fi
