@@ -17,9 +17,9 @@ class InventoryTest {
     void pickingUpAnItemMovesItFromTheRoomToTheInventory() throws Exception {
         GameSession game = new GameSession();
 
-        game.play("P", "Magical Flower");
+        game.play("P", "Book");
 
-        assertTrue(game.carries("Magical Flower"));
+        assertTrue(game.carries("Book"));
         assertTrue(game.room(0).getAvailableItems().isEmpty());
     }
 
@@ -29,15 +29,15 @@ class InventoryTest {
 
         game.play("P", "1");
 
-        assertTrue(game.carries("Magical Flower"));
+        assertTrue(game.carries("Book"));
     }
 
     @Test
-    void pickingUpTheMagicalFlowerRaisesWisdom() throws Exception {
+    void pickingUpTheBookRaisesWisdom() throws Exception {
         GameSession game = new GameSession();
         assertEquals(10, game.stat("wisdom"));
 
-        game.play("P", "Magical Flower");
+        game.play("P", "Book");
 
         assertEquals(20, game.stat("wisdom"));
     }
@@ -56,9 +56,9 @@ class InventoryTest {
     void discardingAnItemLeavesItInTheRoomAndTakesItsBonusAway() throws Exception {
         GameSession game = new GameSession();
 
-        game.play("P", "Magical Flower", "D", "Magical Flower");
+        game.play("P", "Book", "D", "Book");
 
-        assertFalse(game.carries("Magical Flower"));
+        assertFalse(game.carries("Book"));
         assertEquals(1, game.room(0).getAvailableItems().size());
         assertEquals(10, game.stat("wisdom"));
     }
@@ -67,7 +67,7 @@ class InventoryTest {
     void anItemThePlayerDoesNotCarryCannotBeDiscarded() throws Exception {
         GameSession game = new GameSession();
 
-        game.play("D", "Magical Flower");
+        game.play("D", "Book");
 
         assertTrue(game.printed("No such item."));
         assertEquals(1, game.room(0).getAvailableItems().size());
@@ -81,16 +81,16 @@ class InventoryTest {
 
         assertEquals(1, game.player().getInventoryWeapons().size());
         assertEquals(10, game.player().getInventoryWeapons().get(0).getDamage());
-        assertEquals(22, game.stat("strength"));
+        assertEquals(15, game.stat("strength"));
     }
 
     @Test
-    void theHeavyClaymoreLowersStrength() throws Exception {
-        GameSession game = new GameSession(101);
+    void anItemCanLowerAStat() throws Exception {
+        GameSession game = new GameSession(9);
 
-        game.play("P", "Heavy Claymore");
+        game.play("P", "Stone");
 
-        assertEquals(-10, game.stat("strength"));
+        assertEquals(5, game.stat("agility"));
     }
 
     @Test

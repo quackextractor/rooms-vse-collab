@@ -7,78 +7,77 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class CombatTest {
 
-    private GameSession nextToTheGargoyle() throws Exception {
+    private GameSession nextToTheArena() throws Exception {
         GameSession game = new GameSession();
-        game.play("P", "Magical Flower", "E", "N");
+        game.play("P", "Book", "E");
         return game;
     }
 
-    private Enemy gargoyle(GameSession game) {
-        return game.room(3).getAvailableEnemies().get(0);
+    private Enemy goblin(GameSession game) {
+        return game.room(2).getAvailableEnemies().get(0);
     }
 
     @Test
     void enteringARoomWithAnEnemyAsksThePlayerToFight() throws Exception {
-        GameSession game = nextToTheGargoyle();
+        GameSession game = nextToTheArena();
 
-        game.play("E", "N");
+        game.play("N", "N");
 
-        assertTrue(game.printed("- Gargoyle (health 60, strength 8, agility 6)"));
-        assertTrue(game.printed("Do you wish to proceed? [Y/N]"));
+        assertTrue(game.printed("A goblin blocks the way.", "- Goblin (health 30, strength 6, agility 5)", "Do you wish to proceed? [Y/N]"));
     }
 
     @Test
     void refusingToFightTakesThePlayerBack() throws Exception {
-        GameSession game = nextToTheGargoyle();
+        GameSession game = nextToTheArena();
 
-        game.play("E", "N");
+        game.play("N", "N");
 
-        assertEquals("L1", game.currentRoom());
-        assertEquals(60, gargoyle(game).getHealth());
+        assertEquals("Library", game.currentRoom());
+        assertEquals(30, goblin(game).getHealth());
     }
 
     @Test
     void anAnswerOtherThanYesOrNoIsAskedAgain() throws Exception {
-        GameSession game = nextToTheGargoyle();
+        GameSession game = nextToTheArena();
 
-        game.play("E", "maybe", "N");
+        game.play("N", "maybe", "N");
 
         assertTrue(game.printed("Invalid input. Input 'Y' or 'N'."));
-        assertEquals("L1", game.currentRoom());
+        assertEquals("Library", game.currentRoom());
     }
 
     @Test
     void losingAFightSendsThePlayerBackWithHalfTheirHealth() throws Exception {
-        GameSession game = nextToTheGargoyle();
+        GameSession game = nextToTheArena();
 
-        game.play("E", "Y");
+        game.play("N", "Y");
 
-        assertTrue(game.printed("You were beat by Gargoyle!"));
-        assertEquals("L1", game.currentRoom());
+        assertTrue(game.printed("You were beat by Goblin!"));
+        assertEquals("Library", game.currentRoom());
         assertEquals(5, game.stat("health"));
-        assertEquals(40, gargoyle(game).getHealth());
+        assertEquals(10, goblin(game).getHealth());
     }
 
     @Test
     void winningAFightRemovesTheEnemyAndHealsThePlayer() throws Exception {
-        GameSession game = new GameSession();
-        game.play("P", "Magical Flower", "E", "P", "Shield", "P", "Sword", "N", "P", "Potion");
+        GameSession game = nextToTheArena();
+        game.play("P", "Sword", "P", "Potion");
 
-        game.play("E", "Y");
+        game.play("N", "Y");
 
-        assertTrue(game.printed("You have successfully defeated Gargoyle!"));
-        assertEquals("L2", game.currentRoom());
-        assertTrue(game.room(3).getAvailableEnemies().isEmpty());
-        assertEquals(45, game.stat("health"));
+        assertTrue(game.printed("You have successfully defeated Goblin!"));
+        assertEquals("Arena", game.currentRoom());
+        assertTrue(game.room(2).getAvailableEnemies().isEmpty());
+        assertEquals(40, game.stat("health"));
     }
 
     @Test
     void theFasterFighterStrikesFirst() throws Exception {
-        GameSession game = nextToTheGargoyle();
+        GameSession game = nextToTheArena();
 
-        game.play("E", "Y");
+        game.play("N", "Y");
 
-        assertTrue(game.printed("You attack Gargoyle for 10 damage." + System.lineSeparator() + "(10|50)"));
+        assertTrue(game.printed("Do you wish to proceed? [Y/N]", "You attack Goblin for 10 damage.", "(10|20)"));
     }
 
     @Test

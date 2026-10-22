@@ -7,97 +7,82 @@ import static org.junit.jupiter.api.Assertions.*;
 class MovementTest {
 
     @Test
-    void thePlayerStartsInTheCastleHarbour() throws Exception {
+    void thePlayerStartsInTheStartRoom() throws Exception {
         GameSession game = new GameSession();
 
-        assertEquals("Castle Harbour", game.currentRoom());
+        assertEquals("Start", game.currentRoom());
     }
 
     @Test
     void walkingIntoAWallKeepsThePlayerWhereTheyAre() throws Exception {
         GameSession game = new GameSession();
 
-        game.play("N");
+        game.play("S");
 
-        assertEquals("Castle Harbour", game.currentRoom());
-        assertTrue(game.printed("You cannot move in that direction from Castle Harbour"));
+        assertEquals("Start", game.currentRoom());
+        assertTrue(game.printed("You cannot move in that direction from Start"));
     }
 
     @Test
-    void theLobbyIsLockedWithoutEnoughWisdom() throws Exception {
+    void aLockedRoomCannotBeEnteredWithoutEnoughWisdom() throws Exception {
         GameSession game = new GameSession();
 
         game.play("E");
 
-        assertEquals("Castle Harbour", game.currentRoom());
-        assertTrue(game.printed("Cannot enter room: You can't figure out how to get into the castle."));
+        assertEquals("Start", game.currentRoom());
+        assertTrue(game.printed("Cannot enter room: The door is locked."));
     }
 
     @Test
-    void theMagicalFlowerOpensTheLobby() throws Exception {
+    void readingTheBookOpensTheLockedRoom() throws Exception {
         GameSession game = new GameSession();
 
-        game.play("P", "Magical Flower", "E");
+        game.play("P", "Book", "E");
 
-        assertEquals("Castle Lobby", game.currentRoom());
+        assertEquals("Library", game.currentRoom());
     }
 
     @Test
     void walkingBackReturnsToThePreviousRoom() throws Exception {
         GameSession game = new GameSession();
 
-        game.play("P", "Magical Flower", "E", "W");
+        game.play("P", "Book", "E", "W");
 
-        assertEquals("Castle Harbour", game.currentRoom());
+        assertEquals("Start", game.currentRoom());
     }
 
     @Test
     void theMapMarksTheRoomThePlayerStandsIn() throws Exception {
         GameSession game = new GameSession();
 
-        game.play("P", "Magical Flower", "E");
+        game.play("P", "Book", "E");
 
-        assertTrue(game.printed("[*  1]"));
+        assertTrue(game.printed("[   0][*  1]"));
     }
 
     @Test
-    void theSecretChamberNeedsWisdom30() throws Exception {
-        GameSession game = new GameSession(5);
-        game.room(5).getAvailableEnemies().clear();
-
-        game.play("W");
-
-        assertEquals("Crossroads", game.currentRoom());
-        assertTrue(game.printed("Cannot enter room: You must be smart to uncover the secret."));
-    }
-
-    @Test
-    void theSecretChamberStaysOffTheMapUntilThePlayerEntersIt() throws Exception {
-        GameSession game = new GameSession(5);
-        game.room(5).getAvailableEnemies().clear();
+    void aSecretRoomStaysOffTheMapUntilThePlayerEntersIt() throws Exception {
+        GameSession game = new GameSession();
 
         game.play("M");
-        assertFalse(game.printed("101"));
+        assertTrue(game.printed("Discovered map (? unexplored exit, * you are here):", "[*  0][   ?]"));
 
-        game.player().setStatValue("wisdom", 30);
-        game.play("W");
-
-        assertEquals("Secret Chamber", game.currentRoom());
-        assertTrue(game.printed("[*101]"));
+        game.play("N");
+        assertEquals("Secret Room", game.currentRoom());
+        assertTrue(game.printed("[*  9]"));
     }
 
     @Test
-    void theCastleGatesNeedStrength30() throws Exception {
-        GameSession game = new GameSession(7);
-        game.room(7).getAvailableEnemies().clear();
+    void theExitNeedsStrength30() throws Exception {
+        GameSession game = new GameSession(1);
 
         game.play("E");
-        assertEquals("Large Flooded Room", game.currentRoom());
-        assertTrue(game.printed("Cannot enter room: You need great strength to open the gates"));
+        assertEquals("Library", game.currentRoom());
+        assertTrue(game.printed("Cannot enter room: The gate is too heavy."));
 
         game.player().setStatValue("strength", 30);
         game.play("E");
-        assertEquals("Villedor", game.currentRoom());
+        assertEquals("Exit", game.currentRoom());
     }
 
     @Test
@@ -106,7 +91,7 @@ class MovementTest {
 
         game.play("X");
 
-        assertEquals("Castle Harbour", game.currentRoom());
+        assertEquals("Start", game.currentRoom());
         assertTrue(game.printed("Invalid input."));
     }
 
