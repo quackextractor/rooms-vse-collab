@@ -12,10 +12,11 @@ Edit this file, not the README.
 
 ## Validation
 
-- `sh scripts/build.sh` compiles every file under `src/` with `javac`, tracked or not. `sh scripts/smoke.sh` runs three headless checks: the scripted opening, the no-terminal path, and one combat prompt. `sh scripts/package.sh` builds the release artifact.
+- `sh scripts/build.sh` compiles every file under `src/` with `javac`, tracked or not. `sh scripts/test.sh` compiles `src/` and `test/` together and runs the JUnit tests in `test/tests` from `out/test`. `sh scripts/package.sh` builds the release artifact.
 - **Do not run the first two before committing.** `hooks/pre-commit` runs both and refuses the commit if either fails, so running them first spends the same two seconds twice and changes nothing. `package.sh` is not in the hook, so run it when the release artifact or the `Main-Class` matters.
-- Run the smoke check when the change touches `MapLoader`, `rooms.csv`, items, stats, or `RoomCondition`, and watch it fail when you break what it guards. A gate you have not seen go red is a gate you have not tested.
-- The smoke run covers the opening, the missing-terminal path and a combat prompt — not a whole game. There is no test framework and adding one for this project is not a trade worth making; extend `smoke.sh` instead when a change needs a check that does not exist.
+- Run the tests when the change touches `MapLoader`, `rooms.csv`, items, stats, or `RoomCondition`, and watch them fail when you break what they guard. A gate you have not seen go red is a gate you have not tested.
+- Tests drive the game through `GameSession.play(...)`, which types commands into `PlayerController` the way a player would. Write them as plain sentences: one behavior per test, the method name says what should happen. `WalkthroughTest` plays from the harbour to Villedor; keep it winnable when `rooms.csv` changes.
+- A test must never reach `System.exit` - quitting, the win message on the turn after entering Villedor, death, or running out of input in a prompt. It ends the JVM with code 0, and `test.sh` fails the run because JUnit's summary never prints. Clear a room's enemies first when a test starts next to one.
 - CI runs the same two scripts before it publishes anything, so a green local gate is not what makes the release safe — the workflow's is.
 
 ## Structure
@@ -24,7 +25,7 @@ Edit this file, not the README.
 - 300-line limit. `Room.java` is the largest file at 199 and is at the edge of what a class should hold — most of it is getters.
 - One purpose per class. No god objects.
 - DRY, unless it produces an opaque helper.
-- No dependencies. Not one. A library for CSV parsing or a test runner is a bigger cost here than the code it replaces.
+- No dependencies, except JUnit for the tests: `lib/junit-platform-console-standalone-1.13.4.jar`, committed so the hook works offline and IntelliJ finds it through `rooms.iml`. It never goes into the release jar.
 
 ## Code documentation
 
@@ -50,18 +51,18 @@ Edit this file, not the README.
 
 - A command is a `Command` implementing `execute()` and `undo()`. Movement, pick-up and discard are undoable through `PlayerController`'s stack; `L` is not, and its `undo()` says so rather than pretending.
 - Adding a command means three edits: the class, the `switch` in `PlayerController`, and the help text — one line in `PlayerController.HELP_ACTIONS`, which `printHelp()` prints both at startup and on `H`.
-- All input goes through `utilities.Console.readLine()`, which owns the one `Scanner` over `System.in` and reports EOF instead of throwing. `PlayerController` and `Combat` share it. Do not create a second reader: one over the same stream buffers lines the other cannot see, which is what made scripted combat impossible and what the combat check in `smoke.sh` now guards.
+- All input goes through `utilities.Console.readLine()`, which owns the one `Scanner` over `System.in` and reports EOF instead of throwing. `PlayerController` and `Combat` share it. Do not create a second reader: one over the same stream buffers lines the other cannot see, which is what made scripted combat impossible and what the combat tests now rely on. Tests swap its input with `Console.useInput`.
 
 ## Commits
 
 - Conventional Commits 1.0.0.
 - Never `--no-verify` past `hooks/pre-commit`.
-- After three failed attempts on a build or a fix, stop and report each attempt with the exact error and the diagnosis. Never disable the smoke check to force a pass.
+- After three failed attempts on a build or a fix, stop and report each attempt with the exact error and the diagnosis. Never disable a test to force a pass.
 - **Describe the change, not the author.** No `Co-Authored-By:`, no `Generated with`, no tool name, no model name, no `noreply@` address. Conventional Commits is a spec for the change; a trailer naming a tool is not part of it.
 
 ## Releases
 
-- **Pushing to `master` publishes.** `.github/workflows/release.yml` gates on `scripts/build.sh` + `scripts/smoke.sh`, then tags the commit as `build-<short sha>`, builds `scripts/package.sh` output and attaches it to the GitHub release. It is idempotent per commit and never moves a tag. Nothing local publishes anything.
+- **Pushing to `master` publishes.** `.github/workflows/release.yml` gates on `scripts/build.sh` + `scripts/test.sh`, then tags the commit as `build-<short sha>`, builds `scripts/package.sh` output and attaches it to the GitHub release. It is idempotent per commit and never moves a tag. Nothing local publishes anything.
 - There is no version number and no changelog. A release is named after the commit it was built from, and the commit history says what changed.
 - Tags belong to CI alone. Do not create them in a hook: a local tag and a CI tag land on different commits and `git fetch --tags` refuses to reconcile them.
 - `install-hooks.ps1` installs the pre-commit hook; `.git/hooks` is not tracked, so a fresh clone needs it once.
@@ -69,7 +70,7 @@ Edit this file, not the README.
 ## Artefacts
 
 - Everything a session produces goes under `out/`. Nothing meant to be read later goes in the system temp directory.
-- `log.txt` is the game's own log: `Logic.printToUser` appends every line it prints, in the working directory, so the game writes there whenever it runs. `scripts/smoke.sh` therefore plays from `out/smoke` with its own copy of `rooms.csv` — a gate that dirties a tracked file is a gate that gets uninstalled.
+- `log.txt` is the game's own log: `Logic.printToUser` appends every line it prints, in the working directory, so the game writes there whenever it runs. `scripts/test.sh` therefore runs from `out/test` with its own copy of `rooms.csv` — a gate that dirties a tracked file is a gate that gets uninstalled.
 
 ## Response format
 

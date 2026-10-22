@@ -2,7 +2,7 @@ name: release
 
 # Two jobs, and the split is the point.
 #
-#   gate     every push and every pull request: compile, then the scripted opening. Nothing is
+#   gate     every push and every pull request: compile, then the JUnit tests. Nothing is
 #            published unless this passes.
 #   release  push to master only: tag the commit, build the artifact, create the GitHub release with
 #            it attached.
@@ -40,8 +40,8 @@ jobs:
       - name: Compile
         run: sh scripts/build.sh
 
-      - name: Smoke
-        run: sh scripts/smoke.sh
+      - name: Test
+        run: sh scripts/test.sh
 
   release:
     needs: gate
@@ -62,7 +62,7 @@ jobs:
       - name: Build and package
         run: |
           sh scripts/build.sh
-          sh scripts/smoke.sh
+          sh scripts/test.sh
           sh scripts/package.sh
 
       # The tag names the commit, so it is the same for every run of this workflow on this commit and
