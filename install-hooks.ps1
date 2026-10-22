@@ -7,7 +7,7 @@
     it. This installs the tracked copy from hooks/ and makes it executable, which is what a fresh
     clone needs before its first commit.
 
-    One hook: pre-commit runs `scripts/build.sh` and `scripts/smoke.sh` and refuses the commit if
+    One hook: pre-commit runs `scripts/build.sh` and `scripts/test.sh` and refuses the commit if
     either fails. It is not meant to be bypassed with --no-verify: a gate that can be skipped is a
     suggestion, and --no-verify would switch off the build as well.
 
@@ -58,7 +58,7 @@ foreach ($name in $installed) {
     Write-Host "[OK]   installed $target"
 }
 
-Write-Host "[INFO] pre-commit runs scripts/build.sh and scripts/smoke.sh and refuses the commit if"
+Write-Host "[INFO] pre-commit runs scripts/build.sh and scripts/test.sh and refuses the commit if"
 Write-Host "[INFO] either fails. Publishing is not local: pushing to master is, via"
 Write-Host "[INFO] .github/workflows/release.yml."
 Write-Host "[INFO] remove the hook with: Remove-Item .git/hooks/pre-commit"

@@ -50,6 +50,7 @@ public class PlayerController {
 
         if (!player.getCurrentRoom().getAvailableEnemies().isEmpty()) {
             Combat.warn(player, player.getCurrentRoom().getAvailableEnemies());
+            return;
         }
 
         if (player.getCurrentRoom().isWinRoom()) {

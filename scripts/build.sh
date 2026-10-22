@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# The entire build: javac, no dependency manager, no build tool, no test framework.
+# The entire build: javac, no dependency manager, no build tool. The tests are in scripts/test.sh.
 #
 # Every source file at once, because the package graph is small and the alternative - compiling only
 # what changed - needs a dependency graph this project does not have. It takes about two seconds.
@@ -36,5 +36,12 @@ git ls-files --cached --others --exclude-standard -- 'src/*.java' > out/sources.
 # an ordinary machine has, for no reason the code asks for. The source uses nothing newer than 17, so
 # 17 is the honest floor and the artifact says so.
 javac --release 17 -encoding UTF-8 -d out/classes @out/sources.txt
+
+# Byte 7 of a class file is its major version, and 61 is Java 17, which README.txt promises.
+set -- $(od -An -tu1 -j6 -N2 out/classes/Main.class)
+if [ "$2" -gt 61 ]; then
+    echo "[ERROR] Main.class targets a Java newer than 17 (major version $2). Keep --release 17."
+    exit 1
+fi
 
 echo "[OK]   compiled $(wc -l < out/sources.txt | tr -d ' ') source file(s) into out/classes"
