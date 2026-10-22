@@ -2,7 +2,6 @@ package enemy;
 
 import items.Weapon;
 import player.*;
-import room.Room;
 import utilities.Console;
 import utilities.Logic;
 
@@ -55,10 +54,7 @@ public class Combat {
 
     private static void winDuel(Player player, Enemy enemy){
         Logic.printToUser("You have successfully defeated " + enemy.getName() + "!");
-        Room roomWithThisEnemyDefeated = player.getCurrentRoom();
-        // remove defeated enemy from room
-        roomWithThisEnemyDefeated.getAvailableEnemies().remove(enemy);
-        player.setCurrentRoom(roomWithThisEnemyDefeated);
+        player.getCurrentRoom().getAvailableEnemies().remove(enemy);
     }
 
     // player won't face the other enemies once defeated
