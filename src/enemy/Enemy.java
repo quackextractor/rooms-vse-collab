@@ -21,12 +21,9 @@ public class Enemy {
 
     @Override
     public String toString() {
-        return "Enemy{" +
-                "name='" + name + '\'' +
-                ", health=" + health +
-                ", strength=" + strength +
-                ", agility=" + agility +
-                '}';
+        return getName() + " (health " + getHealth()
+                + ", strength " + getStrength()
+                + ", agility " + getAgility() + ")";
     }
 
     public String getName() {

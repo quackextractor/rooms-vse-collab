@@ -15,7 +15,9 @@ public class Combat {
         Collections.shuffle(enemies);
         while (true) {
             Logic.printToUser(player.getCurrentRoom().getCombatMessage());
-            Logic.printToUser(enemies.toString());
+            for (Enemy enemy : enemies) {
+                Logic.printToUser("- " + enemy);
+            }
             Logic.printToUser("Do you wish to proceed? [Y/N]");
             String input = Console.readLine();
 
