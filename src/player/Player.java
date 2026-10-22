@@ -10,44 +10,29 @@ import java.util.*;
 
 public class Player {
     private Room currentRoom;
-    private Map<Integer, Room> roomMap;
-    private List<Item> inventoryItems;
-    private List<Weapon> inventoryWeapons;
-    private Map<String, Integer> stats = new LinkedHashMap<>();
-    private List<String> existingStats = new ArrayList<>();
-    private Set<Integer> discoveredRoomIds = new LinkedHashSet<>();
-
-
-    public void setInventoryWeapons(List<Weapon> inventoryWeapons) {
-        this.inventoryWeapons = inventoryWeapons;
-    }
-
-    public void setDiscardedItems(List<Item> discardedItems) {
-        this.discardedItems = discardedItems;
-    }
-
-    public List<Weapon> getInventoryWeapons() {
-        return inventoryWeapons;
-    }
-
-    private List<Item> discardedItems;
+    private final Map<Integer, Room> roomMap;
+    private final List<Item> inventoryItems = new ArrayList<>();
+    private final List<Weapon> inventoryWeapons = new ArrayList<>();
+    private final Map<String, Integer> stats = new LinkedHashMap<>();
+    private final Set<Integer> discoveredRoomIds = new LinkedHashSet<>();
 
     public Player(Room initialRoom, Map<Integer, Room> roomMap) {
-
-        this.currentRoom = initialRoom;
-        this.roomMap = roomMap;
-        this.inventoryItems = new ArrayList<>();
-        this.inventoryWeapons = new ArrayList<>();
-        this.discardedItems = new ArrayList<>();
+        this.currentRoom = Objects.requireNonNull(initialRoom, "initialRoom");
+        this.roomMap = Objects.requireNonNull(roomMap, "roomMap");
         this.discoveredRoomIds.add(initialRoom.getId());
 
-        // Default stats
         stats.put("strength", 10);
         stats.put("wisdom", 10);
         stats.put("agility", 10);
         stats.put("health", 10);
+    }
 
-        existingStats.addAll(stats.keySet());
+    public List<Weapon> getInventoryWeapons() {
+        return Collections.unmodifiableList(inventoryWeapons);
+    }
+
+    public List<Item> getInventoryItems() {
+        return Collections.unmodifiableList(inventoryItems);
     }
 
     public void pickUpItem(Item item, Player player) {
@@ -60,7 +45,6 @@ public class Player {
             }
 
             Logic.printToUser("Picked up " + item.getName() + ".");
-            // Apply stats from the picked up item
             applyStats(item.getStats());
             showStats();
             showItemsInRoom();
@@ -90,70 +74,35 @@ public class Player {
         }
     }
 
-    private void applyStatIncrease(String statName, int value) {
-        if (value != 0) {
-            if (existingStats.contains(statName)) {
-                int currentValue = stats.get(statName);
-                stats.put(statName, currentValue + value);
-            } else {
-                stats.put(statName, value);
-                existingStats.add(statName);
-            }
-            if (value > 0) {
-                Logic.printToUser("Your " + statName + " has increased to " + stats.get(statName) + ".");
-            } else {
-                Logic.printToUser("Your " + statName + " has decreased to " + stats.get(statName) + ".");
-            }
-        }
-    }
-
     public void applyStats(Map<String, Integer> stats) {
-        if (stats != null) {
-            for (Map.Entry<String, Integer> entry : stats.entrySet()) {
-                String statName = entry.getKey();
-                int value = entry.getValue();
-                applyStatIncrease(statName, value);
-            }
+        for (Map.Entry<String, Integer> entry : stats.entrySet()) {
+            changeStat(entry.getKey(), entry.getValue());
         }
     }
 
-    public void setCurrentRoom(Room currentRoom) {
-        this.currentRoom = currentRoom;
-    }
-
-    private void increaseStat(String statName, int value) {
-        int currentStat = getStatValue(statName);
-        setStatValue(statName, currentStat + value);
-        if (value > 0) {
-            Logic.printToUser("Your " + statName + " has increased to " + getStatValue(statName) + ".");
-        } else {
-            Logic.printToUser("Your " + statName + " has decreased to " + getStatValue(statName) + ".");
+    private void changeStat(String statName, int value) {
+        if (value == 0) {
+            return;
         }
+        setStatValue(statName, getStatValue(statName) + value);
+        String direction = value > 0 ? "increased" : "decreased";
+        Logic.printToUser("Your " + statName + " has " + direction + " to " + getStatValue(statName) + ".");
     }
 
     public void discardItem(Item item) {
         if (inventoryItems.contains(item)) {
             inventoryItems.remove(item);
-            List<Item> newSetOfItems = currentRoom.getAvailableItems();
-            newSetOfItems.add(item);
-            currentRoom.setAvailableItems(newSetOfItems);
+            currentRoom.getAvailableItems().add(item);
             if (item instanceof Weapon) {
                 inventoryWeapons.remove(item);
             }
-            removeStatsFrom(item.getStats());
+            for (Map.Entry<String, Integer> entry : item.getStats().entrySet()) {
+                changeStat(entry.getKey(), -entry.getValue());
+            }
             Logic.printToUser("Discarded " + item.getName() + ".");
             showStats();
         } else {
             Logic.printToUser("Item not found in the inventory.");
-        }
-    }
-
-    private void removeStatsFrom(Map<String, Integer> stats) {
-        for (Map.Entry<String, Integer> entry : stats.entrySet()) {
-            String key = entry.getKey();
-            Integer value = entry.getValue();
-            // Negate the value
-            increaseStat(key, -value);
         }
     }
 
@@ -162,9 +111,11 @@ public class Player {
     }
 
     public void setStatValue(String stat, int value) {
-        stats.put(stat, value);
+        if (stat == null || stat.isBlank()) {
+            throw new IllegalArgumentException("Stat name must not be blank.");
+        }
+        stats.put(stat, stat.equals("health") ? Math.max(0, value) : value);
     }
-
 
     public Room getCurrentRoom() {
         return currentRoom;
@@ -193,18 +144,16 @@ public class Player {
     public void showInventory() {
         Logic.printToUser("Inventory:");
         Logic.printToUser("Items:");
-        if (inventoryItems != null && !inventoryItems.isEmpty()) {
-            for (int i = 0; i < inventoryItems.size(); i++) {
-                Logic.printToUser((i + 1) + ". " + inventoryItems.get(i).getName() + inventoryItems.get(i).getStats());
-            }
+        for (int i = 0; i < inventoryItems.size(); i++) {
+            Logic.printToUser((i + 1) + ". " + inventoryItems.get(i).getName() + inventoryItems.get(i).getStats());
         }
-        if (inventoryWeapons != null && !inventoryWeapons.isEmpty()) {
+        if (!inventoryWeapons.isEmpty()) {
             Logic.printToUser("Weapons:");
             for (Weapon weapon : inventoryWeapons) {
                 Logic.printToUser("- " + weapon.getName() + ", Damage: " + weapon.getDamage());
             }
         }
-        if ((inventoryItems == null && inventoryWeapons == null) || inventoryItems.isEmpty() && Objects.requireNonNull(inventoryWeapons).isEmpty()) {
+        if (inventoryItems.isEmpty()) {
             Logic.printToUser("Empty");
         }
     }
@@ -229,13 +178,5 @@ public class Player {
 
     public void showMap() {
         MapView.print(roomMap, discoveredRoomIds, currentRoom.getId());
-    }
-
-    public List<Item> getInventoryItems() {
-        return inventoryItems;
-    }
-
-    public void setInventoryItems(List<Item> inventoryItems) {
-        this.inventoryItems = inventoryItems;
     }
 }

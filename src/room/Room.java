@@ -8,48 +8,61 @@ import utilities.Logic;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Room {
-    private int id;
-    private String name;
-    private String description;
-    private String combatMessage;
-    private boolean isWinRoom;
-    private boolean isSecret;
-    private List<Item> items;
-    private List<Weapon> weapons;
-    private List<RoomCondition> conditions;
-    private List<Enemy> enemies;
-    private List<Item> availableItems;
-    private List<Enemy> availableEnemies;
-    private List<Item> pickedUpItems;
-    private int north;
-    private int east;
-    private int south;
-    private int west;
-    private String winMessage;
+    private final int id;
+    private final String name;
+    private final String description;
+    private final String combatMessage;
+    private final boolean isWinRoom;
+    private final boolean isSecret;
+    private final List<Item> items;
+    private final List<Weapon> weapons;
+    private final List<RoomCondition> conditions;
+    private final List<Enemy> enemies;
+    private final List<Item> availableItems;
+    private final List<Enemy> availableEnemies;
+    private final List<Item> pickedUpItems = new ArrayList<>();
+    private final int north;
+    private final int east;
+    private final int south;
+    private final int west;
+    private final String winMessage;
 
     public Room(int id, String name, String description, List<Item> items, List<Enemy> enemies, String combatMessage, List<Weapon> weapons,
                 List<RoomCondition> conditions, int north, int east, int south, int west, boolean isWinRoom, String winMessage, boolean isSecret) {
-        this.setId(id);
-        this.setName(name);
-        setDescription(description);
-        this.setItems(items);
-        this.setEnemies(enemies);
-        this.setCombatMessage(combatMessage);
-        this.setWeapons(weapons);
-        this.setConditions(conditions);
-        this.setNorth(north);
-        this.setEast(east);
-        this.setSouth(south);
-        this.setWest(west);
-        this.setWinRoom(isWinRoom);
-        this.setWinMessage(winMessage);
-        this.setSecret(isSecret);
-        this.setAvailableItems(new ArrayList<>(items));
-        getAvailableItems().addAll(weapons);
-        this.setAvailableEnemies(new ArrayList<>(enemies));
-        this.setPickedUpItems(new ArrayList<>());
+        if (id < 0) {
+            throw new IllegalArgumentException("Room id must not be negative, got " + id + ".");
+        }
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Room " + id + " has no name.");
+        }
+        this.id = id;
+        this.name = name;
+        this.description = Objects.requireNonNull(description, "description");
+        this.items = List.copyOf(items);
+        this.enemies = List.copyOf(enemies);
+        this.combatMessage = Objects.requireNonNull(combatMessage, "combatMessage");
+        this.weapons = List.copyOf(weapons);
+        this.conditions = List.copyOf(conditions);
+        this.north = exit(north);
+        this.east = exit(east);
+        this.south = exit(south);
+        this.west = exit(west);
+        this.isWinRoom = isWinRoom;
+        this.winMessage = Objects.requireNonNull(winMessage, "winMessage");
+        this.isSecret = isSecret;
+        this.availableItems = new ArrayList<>(items);
+        this.availableItems.addAll(weapons);
+        this.availableEnemies = new ArrayList<>(enemies);
+    }
+
+    private int exit(int roomId) {
+        if (roomId < -1) {
+            throw new IllegalArgumentException("Room " + id + " has an exit to " + roomId + ". Use -1 for a wall.");
+        }
+        return roomId;
     }
 
     public boolean canEnter(Player player) {
@@ -67,120 +80,56 @@ public class Room {
         return winMessage;
     }
 
-    public void setWinMessage(String winMessage) {
-        this.winMessage = winMessage;
-    }
-
     public boolean isWinRoom() {
         return isWinRoom;
-    }
-
-    public void setWinRoom(boolean winRoom) {
-        isWinRoom = winRoom;
     }
 
     public boolean isSecret() {
         return isSecret;
     }
 
-    public void setSecret(boolean secret) {
-        isSecret = secret;
-    }
-
     public int getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getCombatMessage() {
         return combatMessage;
-    }
-
-    public void setCombatMessage(String combatMessage) {
-        this.combatMessage = combatMessage;
     }
 
     public List<Item> getItems() {
         return items;
     }
 
-    public void setItems(List<Item> items) {
-        this.items = items;
-    }
-
     public List<Weapon> getWeapons() {
         return weapons;
-    }
-
-    public void setWeapons(List<Weapon> weapons) {
-        this.weapons = weapons;
     }
 
     public List<RoomCondition> getConditions() {
         return conditions;
     }
 
-    public void setConditions(List<RoomCondition> conditions) {
-        this.conditions = conditions;
-    }
-
     public List<Enemy> getEnemies() {
         return enemies;
-    }
-
-    public void setEnemies(List<Enemy> enemies) {
-        this.enemies = enemies;
-    }
-
-    public void setAvailableItems(List<Item> availableItems) {
-        this.availableItems = availableItems;
-    }
-
-    public void setPickedUpItems(List<Item> pickedUpItems) {
-        this.pickedUpItems = pickedUpItems;
     }
 
     public int getNorth() {
         return north;
     }
 
-    public void setNorth(int north) {
-        this.north = north;
-    }
-
     public int getEast() {
         return east;
-    }
-
-    public void setEast(int east) {
-        this.east = east;
     }
 
     public int getSouth() {
         return south;
     }
 
-    public void setSouth(int south) {
-        this.south = south;
-    }
-
     public int getWest() {
         return west;
-    }
-
-    public void setWest(int west) {
-        this.west = west;
     }
 
     public List<Item> getAvailableItems() {
@@ -195,15 +144,7 @@ public class Room {
         return availableEnemies;
     }
 
-    public void setAvailableEnemies(List<Enemy> availableEnemies) {
-        this.availableEnemies = availableEnemies;
-    }
-
     public String getDescription() {
         return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 }

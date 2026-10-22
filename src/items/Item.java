@@ -3,12 +3,15 @@ package items;
 import java.util.Map;
 
 public class Item {
-    private String name;
-    private Map<String, Integer> stats;  // Map to store stats associated with the item
+    private final String name;
+    private final Map<String, Integer> stats;
 
     public Item(String name, Map<String, Integer> stats) {
-        this.setName(name);
-        this.setStats(stats);
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("Item name must not be blank.");
+        }
+        this.name = name;
+        this.stats = Map.copyOf(stats);
     }
 
     public Map<String, Integer> getStats() {
@@ -24,13 +27,5 @@ public class Item {
 
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public void setStats(Map<String, Integer> stats) {
-        this.stats = stats;
     }
 }

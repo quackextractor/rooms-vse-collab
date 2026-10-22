@@ -38,7 +38,7 @@ public class MapLoader {
             throw new ParsingLevelException("File not found: " + filePath, e);
         } catch (IOException e) {
             throw new ParsingLevelException("Could not read " + filePath + " at line " + lineCount + ": " + e.getMessage(), e);
-        } catch (ParsingLevelException | NumberFormatException e) {
+        } catch (ParsingLevelException | IllegalArgumentException e) {
             throw new ParsingLevelException("Invalid map formatting at line " + lineCount + ": " + e.getMessage(), e);
         }
 
@@ -106,8 +106,8 @@ public class MapLoader {
             }
             try {
                 entries.add(factory.apply(fields));
-            } catch (NumberFormatException e) {
-                throw new ParsingLevelException(problem, e);
+            } catch (IllegalArgumentException e) {
+                throw new ParsingLevelException(problem + " " + e.getMessage(), e);
             }
         }
         return entries;

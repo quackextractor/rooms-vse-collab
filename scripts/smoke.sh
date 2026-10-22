@@ -151,7 +151,7 @@ fi
 
 # A broken map is refused as a ParsingLevelException with its reason, never as some other exception.
 refuse_map() {
-    if ( cd "$1" && java -cp ../../classes Main > "$1.log" 2>&1 ); then
+    if ( cd "$1" && java -cp ../../classes Main < /dev/null > "$1.log" 2>&1 ); then
         echo "[ERROR] smoke: the $1 map loaded anyway."
         exit 1
     fi
@@ -162,7 +162,7 @@ refuse_map() {
     fi
 }
 
-mkdir -p missing nan noroom0 badexit duplicate emptystat bom
+mkdir -p missing nan noroom0 badexit duplicate emptystat deadenemy bom
 refuse_map missing 'File not found: rooms.csv'
 sed '3s/^2,/x2,/' rooms.csv > nan/rooms.csv
 refuse_map nan 'Invalid map formatting at line 3'
@@ -174,6 +174,8 @@ sed '$a 1,Fake,-1,-1,-1,-1,A duplicate.' rooms.csv > duplicate/rooms.csv
 refuse_map duplicate 'Room id 1 is used by more than one room'
 sed 's/Magical Flower:wisdom:10/Magical Flower::10/' rooms.csv > emptystat/rooms.csv
 refuse_map emptystat 'Invalid item "Magical Flower::10"'
+sed 's/Gargoyle:60:8:6/Gargoyle:0:8:6/' rooms.csv > deadenemy/rooms.csv
+refuse_map deadenemy 'Invalid enemy "Gargoyle:0:8:6"'
 
 { printf '\357\273\277'; cat rooms.csv; } > bom/rooms.csv
 printf 'Q\n' | ( cd bom && java -cp ../../classes Main > bom.log 2>&1 ) || true
