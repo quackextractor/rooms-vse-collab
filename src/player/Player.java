@@ -9,12 +9,12 @@ import utilities.MapView;
 import java.util.*;
 
 public class Player {
-    private Room currentRoom;
     private final Map<Integer, Room> roomMap;
     private final List<Item> inventoryItems = new ArrayList<>();
     private final List<Weapon> inventoryWeapons = new ArrayList<>();
     private final Map<String, Integer> stats = new LinkedHashMap<>();
     private final Set<Integer> discoveredRoomIds = new LinkedHashSet<>();
+    private Room currentRoom;
 
     public Player(Room initialRoom, Map<Integer, Room> roomMap) {
         this.currentRoom = Objects.requireNonNull(initialRoom, "initialRoom");

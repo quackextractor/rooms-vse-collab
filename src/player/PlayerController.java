@@ -1,7 +1,7 @@
 package player;
 
-import enemy.Combat;
 import commands.*;
+import enemy.Combat;
 import items.Item;
 import utilities.Console;
 import utilities.Logic;
@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.Stack;
 
 public class PlayerController {
-    private Player player;
-    private static Stack<Command> commandHistory;
     private static final List<String> HELP_ACTIONS = List.of(
             "Enter direction (N, E, S, W) to move around",
             "I to show inventory",
@@ -20,6 +18,13 @@ public class PlayerController {
             "L to look around you",
             "Q to quit"
     );
+    private static Stack<Command> commandHistory;
+    private Player player;
+
+    public PlayerController(Player player) {
+        this.player = player;
+        commandHistory = new Stack<>();
+    }
 
     public static void printHelp() {
         Logic.printToUser("You can do the following actions:");
@@ -31,14 +36,18 @@ public class PlayerController {
         Logic.printToUser("Press H to bring up this help.");
     }
 
-    public PlayerController(Player player) {
-        this.player = player;
-        commandHistory = new Stack<>();
+    public static void undoLastMove() {
+        if (!commandHistory.isEmpty()) {
+            Command lastCommand = commandHistory.pop();
+            lastCommand.undo();
+        } else {
+            Logic.printToUser("Nowhere to go.");
+        }
     }
 
     public void getPlayerInput(Player player) {
 
-        if (!player.getCurrentRoom().getAvailableEnemies().isEmpty()){
+        if (!player.getCurrentRoom().getAvailableEnemies().isEmpty()) {
             Combat.warn(player, player.getCurrentRoom().getAvailableEnemies());
         }
 
@@ -47,7 +56,7 @@ public class PlayerController {
             System.exit(0);
         }
 
-        if (player.getStatValue("health") <= 0){
+        if (player.getStatValue("health") <= 0) {
             Logic.printToUser("You died.");
             System.exit(0);
         }
@@ -94,21 +103,9 @@ public class PlayerController {
         }
     }
 
-
-
-
     private void executeCommand(Command command) {
         command.execute();
         commandHistory.push(command);
-    }
-
-    public static void undoLastMove() {
-        if (!commandHistory.isEmpty()) {
-            Command lastCommand = commandHistory.pop();
-            lastCommand.undo();
-        } else {
-            Logic.printToUser("Nowhere to go.");
-        }
     }
 
     private void undoLastAction() {
