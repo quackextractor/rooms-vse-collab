@@ -16,6 +16,7 @@ public class PlayerController {
             "P to pick up item",
             "D to discard item",
             "L to look around you",
+            "M to show the map",
             "Q to quit"
     );
     private static Stack<Command> commandHistory;

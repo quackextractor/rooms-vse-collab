@@ -47,6 +47,14 @@ if grep -qi 'exception' smoke.log; then
     exit 1
 fi
 
+# Every command in PlayerController's switch has a line in the help, which is printed at startup.
+for key in I P D L M Q; do
+    if ! grep -q "^- $key to " smoke.log; then
+        echo "[ERROR] smoke: the help no longer lists $key. Add it to PlayerController.HELP_ACTIONS."
+        exit 1
+    fi
+done
+
 # The map of discovered rooms. It is printed when the game starts and again after every move, so
 # the scripted opening prints it twice: once for the room the player starts in, once for the room
 # they walk into. The cell the player stands in carries a *, so it reads [*  1] after moving east.

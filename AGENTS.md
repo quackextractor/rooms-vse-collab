@@ -49,7 +49,7 @@ Edit this file, not the README.
 ## Commands
 
 - A command is a `Command` implementing `execute()` and `undo()`. Movement, pick-up and discard are undoable through `PlayerController`'s stack; `L` is not, and its `undo()` says so rather than pretending.
-- Adding a command means three edits: the class, the `switch` in `PlayerController`, and the help text — which is written out twice, in `Game` and again in the `H` case. Update both or neither; they are already two copies of the same sentence.
+- Adding a command means three edits: the class, the `switch` in `PlayerController`, and the help text — one line in `PlayerController.HELP_ACTIONS`, which `printHelp()` prints both at startup and on `H`.
 - All input goes through `utilities.Console.readLine()`, which owns the one `Scanner` over `System.in` and reports EOF instead of throwing. `PlayerController` and `Combat` share it. Do not create a second reader: one over the same stream buffers lines the other cannot see, which is what made scripted combat impossible and what the combat check in `smoke.sh` now guards.
 
 ## Commits
