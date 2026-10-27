@@ -35,4 +35,9 @@ Martin Morávek VŠE
 
 Pushing to `master` publishes: `.github/workflows/release.yml` builds `rooms.jar`, tags the commit and attaches the zip to the GitHub release. Unzip it and run `java -jar rooms.jar`.
 
+## Build
+
+Plain POSIX shell scripts (`scripts/build.sh`, `scripts/test.sh`, `scripts/package.sh`) and raw JDK tools (`javac`, `java`, `jar`). No Gradle or Maven.
+The codebase compiles from scratch in about two seconds, and the only external dependency is a standalone JUnit jar in `lib/`. A build tool would spend longer downloading its wrapper, starting a background daemon, and resolving a task graph than `javac` takes to finish the whole build, especially on cold GitHub Actions runners.
+
 MIT licensed.
