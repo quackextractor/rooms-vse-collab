@@ -5,6 +5,7 @@ import enemy.Combat;
 import items.Item;
 import utilities.Console;
 import utilities.Logic;
+import utilities.SaveManager;
 
 import java.util.List;
 import java.util.Stack;
@@ -50,15 +51,18 @@ public class PlayerController {
 
         if (!player.getCurrentRoom().getAvailableEnemies().isEmpty()) {
             Combat.warn(player, player.getCurrentRoom().getAvailableEnemies());
+            SaveManager.save(player);
             return;
         }
 
         if (player.getCurrentRoom().isWinRoom()) {
+            SaveManager.deleteSave();
             Logic.printToUser(player.getCurrentRoom().getWinMessage());
             System.exit(0);
         }
 
         if (player.getStatValue("health") <= 0) {
+            SaveManager.deleteSave();
             Logic.printToUser("You died.");
             System.exit(0);
         }
@@ -95,6 +99,7 @@ public class PlayerController {
                 player.showMap();
                 break;
             case "Q":
+                SaveManager.save(player);
                 Logic.printToUser("Quitting. Goodbye!");
                 System.exit(0);
             case "H":
@@ -108,6 +113,7 @@ public class PlayerController {
     private void executeCommand(Command command) {
         command.execute();
         commandHistory.push(command);
+        SaveManager.save(player);
     }
 
     private void undoLastAction() {

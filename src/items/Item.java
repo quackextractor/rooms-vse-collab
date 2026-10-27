@@ -1,8 +1,10 @@
 package items;
 
+import java.io.Serializable;
 import java.util.Map;
 
-public class Item {
+public class Item implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final String name;
     private final Map<String, Integer> stats;
 

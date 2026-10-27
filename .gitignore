@@ -29,4 +29,5 @@ bin/
 .DS_Store
 /.idea
 log.txt
+savegame.dat
 rooms-vse-collab.iml

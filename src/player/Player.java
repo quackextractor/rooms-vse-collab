@@ -6,9 +6,11 @@ import room.Room;
 import utilities.Logic;
 import utilities.MapView;
 
+import java.io.Serializable;
 import java.util.*;
 
-public class Player {
+public class Player implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final Map<Integer, Room> roomMap;
     private final List<Item> inventoryItems = new ArrayList<>();
     private final List<Weapon> inventoryWeapons = new ArrayList<>();

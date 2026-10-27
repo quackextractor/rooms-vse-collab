@@ -3,6 +3,7 @@ package items;
 import java.util.Map;
 
 public class Weapon extends Item {
+    private static final long serialVersionUID = 1L;
     private final int damage;
 
     public Weapon(String name, int damage, Map<String, Integer> stats) {

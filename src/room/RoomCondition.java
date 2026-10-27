@@ -1,8 +1,10 @@
 package room;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class RoomCondition {
+public class RoomCondition implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final String stat;
     private final int minValue;
     private final String message;

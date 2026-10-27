@@ -1,6 +1,9 @@
 package enemy;
 
-public class Enemy {
+import java.io.Serializable;
+
+public class Enemy implements Serializable {
+    private static final long serialVersionUID = 1L;
     private final String name;
     private int health;
     private final int strength;
