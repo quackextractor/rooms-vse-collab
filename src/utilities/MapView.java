@@ -1,5 +1,6 @@
 package utilities;
 
+import room.Direction;
 import room.Room;
 
 import java.util.*;
@@ -7,7 +8,6 @@ import java.util.*;
 public class MapView {
     private static final int LABEL_WIDTH = 4;
     private static final int CELL_WIDTH = LABEL_WIDTH + 2;
-    private static final int[][] STEPS = {{0, -1}, {1, 0}, {0, 1}, {-1, 0}};
 
     private MapView() {
     }
@@ -68,8 +68,8 @@ public class MapView {
     }
 
     private static boolean hasDiscoveredNeighbour(Room room, Set<Integer> discoveredRoomIds) {
-        for (int direction = 0; direction < STEPS.length; direction++) {
-            int neighbourId = neighbourId(room, direction);
+        for (Direction direction : Direction.values()) {
+            int neighbourId = room.getExit(direction);
             if (neighbourId != -1 && discoveredRoomIds.contains(neighbourId)) {
                 return true;
             }
@@ -92,31 +92,18 @@ public class MapView {
             int roomId = pending.poll();
             int[] position = positions.get(roomId);
             Room room = roomMap.get(roomId);
-            for (int direction = 0; direction < STEPS.length; direction++) {
-                int neighbourId = neighbourId(room, direction);
+            for (Direction direction : Direction.values()) {
+                int neighbourId = room.getExit(direction);
                 if (neighbourId == -1 || positions.containsKey(neighbourId) || !roomMap.containsKey(neighbourId)) {
                     continue;
                 }
                 positions.put(neighbourId, new int[]{
-                        position[0] + STEPS[direction][0],
-                        position[1] + STEPS[direction][1]});
+                        position[0] + direction.getColumnStep(),
+                        position[1] + direction.getRowStep()});
                 pending.add(neighbourId);
             }
         }
         return positions;
-    }
-
-    private static int neighbourId(Room room, int direction) {
-        switch (direction) {
-            case 0:
-                return room.getNorth();
-            case 1:
-                return room.getEast();
-            case 2:
-                return room.getSouth();
-            default:
-                return room.getWest();
-        }
     }
 
     private static String key(int column, int row) {

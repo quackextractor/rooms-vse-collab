@@ -22,7 +22,6 @@ public class Menu {
                 case "1":
                 case "NEW":
                 case "NEW GAME":
-                case "N":
                     return Action.NEW_GAME;
                 case "2":
                 case "CONTINUE":
@@ -30,7 +29,6 @@ public class Menu {
                     return Action.CONTINUE;
                 case "3":
                 case "EXIT":
-                case "E":
                 case "QUIT":
                 case "Q":
                     return Action.EXIT;

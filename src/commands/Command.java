@@ -1,7 +1,9 @@
 package commands;
 
-public interface Command {
-    void execute();
+import java.io.Serializable;
+
+public interface Command extends Serializable {
+    boolean execute();
 
     void undo();
 }

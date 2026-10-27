@@ -1,8 +1,11 @@
 package player;
 
+import commands.Command;
 import items.Item;
 import items.Weapon;
+import room.Direction;
 import room.Room;
+import room.RoomCondition;
 import utilities.Logic;
 import utilities.MapView;
 
@@ -10,13 +13,14 @@ import java.io.Serializable;
 import java.util.*;
 
 public class Player implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 3L;
     private final Map<Integer, Room> roomMap;
     private final List<Item> inventoryItems = new ArrayList<>();
-    private final List<Weapon> inventoryWeapons = new ArrayList<>();
     private final Map<String, Integer> stats = new LinkedHashMap<>();
     private final Set<Integer> discoveredRoomIds = new LinkedHashSet<>();
+    private final Deque<Command> history = new ArrayDeque<>();
     private Room currentRoom;
+    private Room previousRoom;
 
     public Player(Room initialRoom, Map<Integer, Room> roomMap) {
         this.currentRoom = Objects.requireNonNull(initialRoom, "initialRoom");
@@ -29,83 +33,19 @@ public class Player implements Serializable {
         stats.put("health", 10);
     }
 
-    public List<Weapon> getInventoryWeapons() {
-        return Collections.unmodifiableList(inventoryWeapons);
-    }
-
     public List<Item> getInventoryItems() {
         return Collections.unmodifiableList(inventoryItems);
     }
 
-    public void pickUpItem(Item item, Player player) {
-        if (currentRoom.getAvailableItems().contains(item)) {
-            currentRoom.getAvailableItems().remove(item);
-            player.inventoryItems.add(item);
-
-            if (item instanceof Weapon) {
-                inventoryWeapons.add((Weapon) item);
-            }
-
-            Logic.printToUser("Picked up " + item.getName() + ".");
-            applyStats(item.getStats());
-            showStats();
-            showItemsInRoom();
-        } else {
-            Logic.printToUser("Item not found in the room.");
-        }
+    public List<Weapon> getInventoryWeapons() {
+        return inventoryItems.stream()
+                .filter(Weapon.class::isInstance)
+                .map(Weapon.class::cast)
+                .toList();
     }
 
-    public void showItemsInRoom() {
-        Logic.printToUser("Items in the current room:");
-        List<Item> availableItems = currentRoom.getAvailableItems();
-        for (int i = 0; i < availableItems.size(); i++) {
-            Logic.printToUser((i + 1) + ". " + availableItems.get(i));
-        }
-
-        if (availableItems.isEmpty()) {
-            Logic.printToUser("No items in the room.");
-        }
-    }
-
-    public void showStats() {
-        Logic.printToUser("Stats:");
-        for (Map.Entry<String, Integer> stat : stats.entrySet()) {
-            String name = stat.getKey();
-            String capitalised = name.substring(0, 1).toUpperCase() + name.substring(1);
-            Logic.printToUser("  " + capitalised + " " + stat.getValue());
-        }
-    }
-
-    public void applyStats(Map<String, Integer> stats) {
-        for (Map.Entry<String, Integer> entry : stats.entrySet()) {
-            changeStat(entry.getKey(), entry.getValue());
-        }
-    }
-
-    private void changeStat(String statName, int value) {
-        if (value == 0) {
-            return;
-        }
-        setStatValue(statName, getStatValue(statName) + value);
-        String direction = value > 0 ? "increased" : "decreased";
-        Logic.printToUser("Your " + statName + " has " + direction + " to " + getStatValue(statName) + ".");
-    }
-
-    public void discardItem(Item item) {
-        if (inventoryItems.contains(item)) {
-            inventoryItems.remove(item);
-            currentRoom.getAvailableItems().add(item);
-            if (item instanceof Weapon) {
-                inventoryWeapons.remove(item);
-            }
-            for (Map.Entry<String, Integer> entry : item.getStats().entrySet()) {
-                changeStat(entry.getKey(), -entry.getValue());
-            }
-            Logic.printToUser("Discarded " + item.getName() + ".");
-            showStats();
-        } else {
-            Logic.printToUser("Item not found in the inventory.");
-        }
+    public Map<String, Integer> getStats() {
+        return Collections.unmodifiableMap(stats);
     }
 
     public int getStatValue(String stat) {
@@ -123,62 +63,127 @@ public class Player implements Serializable {
         return currentRoom;
     }
 
-    public void moveNorth(Player player) {
-        int northRoomId = currentRoom.getNorth();
-        move(northRoomId, player);
-    }
-
-    public void moveEast(Player player) {
-        int eastRoomId = currentRoom.getEast();
-        move(eastRoomId, player);
-    }
-
-    public void moveSouth(Player player) {
-        int southRoomId = currentRoom.getSouth();
-        move(southRoomId, player);
-    }
-
-    public void moveWest(Player player) {
-        int westRoomId = currentRoom.getWest();
-        move(westRoomId, player);
-    }
-
-    public void showInventory() {
-        Logic.printToUser("Inventory:");
-        Logic.printToUser("Items:");
-        for (int i = 0; i < inventoryItems.size(); i++) {
-            Logic.printToUser((i + 1) + ". " + inventoryItems.get(i).getName() + inventoryItems.get(i).getStats());
+    public boolean pickUpItem(Item item) {
+        if (!currentRoom.getAvailableItems().contains(item)) {
+            Logic.printToUser("Item not found in the room.");
+            return false;
         }
-        if (!inventoryWeapons.isEmpty()) {
-            Logic.printToUser("Weapons:");
-            for (Weapon weapon : inventoryWeapons) {
-                Logic.printToUser("- " + weapon.getName() + ", Damage: " + weapon.getDamage());
-            }
+        carry(item);
+        Logic.printToUser("Picked up " + item.getName() + ".");
+        for (Map.Entry<String, Integer> bonus : item.getStats().entrySet()) {
+            changeStat(bonus.getKey(), bonus.getValue());
         }
-        if (inventoryItems.isEmpty()) {
-            Logic.printToUser("Empty");
+        return true;
+    }
+
+    public boolean discardItem(Item item) {
+        if (!inventoryItems.contains(item)) {
+            Logic.printToUser("Item not found in the inventory.");
+            return false;
+        }
+        drop(item);
+        for (Map.Entry<String, Integer> bonus : item.getStats().entrySet()) {
+            changeStat(bonus.getKey(), -lossOnDiscard(bonus.getKey(), bonus.getValue()));
+        }
+        Logic.printToUser("Discarded " + item.getName() + ".");
+        return true;
+    }
+
+    public void undoPickUp(Item item, Map<String, Integer> statsBefore) {
+        drop(item);
+        Logic.printToUser("Put back " + item.getName() + ".");
+        restoreStats(statsBefore);
+    }
+
+    public void undoDiscard(Item item, Map<String, Integer> statsBefore) {
+        carry(item);
+        Logic.printToUser("Took back " + item.getName() + ".");
+        restoreStats(statsBefore);
+    }
+
+    private void carry(Item item) {
+        currentRoom.getAvailableItems().remove(item);
+        inventoryItems.add(item);
+    }
+
+    private void drop(Item item) {
+        inventoryItems.remove(item);
+        currentRoom.getAvailableItems().add(item);
+    }
+
+    private void restoreStats(Map<String, Integer> statsBefore) {
+        Set<String> names = new LinkedHashSet<>(stats.keySet());
+        names.addAll(statsBefore.keySet());
+        for (String name : names) {
+            changeStat(name, statsBefore.getOrDefault(name, 0) - getStatValue(name));
         }
     }
 
-    private void move(int roomId, Player player) {
-        if (roomId != -1) {
-            Room nextRoom = roomMap.get(roomId);
-            if (nextRoom.canEnter(player)) {
-                currentRoom = nextRoom;
-                discoveredRoomIds.add(currentRoom.getId());
-                if (!currentRoom.getDescription().isEmpty()) {
-                    Logic.printToUser(currentRoom.getDescription());
-                } else {
-                    Logic.printToUser("Moved to " + currentRoom.getName());
-                }
-                showMap();
-            }
-        } else {
+    private int lossOnDiscard(String stat, int bonus) {
+        if (stat.equals("health")) {
+            return Math.min(bonus, getStatValue("health") - 1);
+        }
+        return bonus;
+    }
+
+    private void changeStat(String statName, int value) {
+        if (value == 0) {
+            return;
+        }
+        setStatValue(statName, getStatValue(statName) + value);
+        String direction = value > 0 ? "increased" : "decreased";
+        Logic.printToUser("Your " + statName + " has " + direction + " to " + getStatValue(statName) + ".");
+    }
+
+    public boolean move(Direction direction) {
+        int roomId = currentRoom.getExit(direction);
+        if (roomId == -1) {
             Logic.printToUser("You cannot move in that direction from " + currentRoom.getName());
+            return false;
         }
+        Room nextRoom = roomMap.get(roomId);
+        Optional<RoomCondition> unmet = nextRoom.unmetCondition(this);
+        if (unmet.isPresent()) {
+            Logic.printToUser("Cannot enter room: " + unmet.get().getMessage());
+            return false;
+        }
+        enter(nextRoom);
+        return true;
+    }
+
+    public void retreat() {
+        if (previousRoom == null) {
+            Logic.printToUser("Nowhere to go.");
+            return;
+        }
+        enter(previousRoom);
+    }
+
+    public void returnTo(Room room) {
+        enter(room);
+    }
+
+    private void enter(Room room) {
+        previousRoom = currentRoom;
+        currentRoom = room;
+        discoveredRoomIds.add(room.getId());
+        Logic.printToUser(room.getDescription().isEmpty() ? "Moved to " + room.getName() : room.getDescription());
+        showMap();
     }
 
     public void showMap() {
         MapView.print(roomMap, discoveredRoomIds, currentRoom.getId());
+    }
+
+    public void record(Command command) {
+        history.push(command);
+    }
+
+    public Optional<Command> takeLastCommand() {
+        return Optional.ofNullable(history.poll());
+    }
+
+    public void forgetHistory() {
+        history.clear();
     }
 }

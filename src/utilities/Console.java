@@ -24,4 +24,18 @@ public class Console {
         }
         return scanner.nextLine();
     }
+
+    public static boolean confirm(String question) {
+        while (true) {
+            Logic.printToUser(question + " [Y/N]");
+            String answer = readLine().trim();
+            if (answer.equalsIgnoreCase("Y")) {
+                return true;
+            }
+            if (answer.equalsIgnoreCase("N")) {
+                return false;
+            }
+            Logic.printToUser("Invalid input. Input 'Y' or 'N'.");
+        }
+    }
 }

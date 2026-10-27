@@ -1,27 +1,10 @@
 name: release
 
-# Two jobs, and the split is the point.
-#
-#   gate     every push and every pull request: compile, then the JUnit tests. Nothing is
-#            published unless this passes.
-#   release  push to master only: tag the commit, build the artifact, create the GitHub release with
-#            it attached.
-#
-# Publishing lives here rather than in a git hook because of when the two run. A local hook fires
-# while the commit exists only on this machine, so a tag pushed from there points at an object the
-# remote has never seen and the release renders with its source missing. This workflow runs after
-# the commit is on the remote, where tagging means what it says. It is also the only place that can
-# attach a build artifact to the release.
-#
-# There is no version number. A release is named after the commit it was built from, so the tag says
-# what the artifact is, and the same commit can be released again without a second tag to reconcile.
-
 on:
   push:
     branches: [ master ]
   pull_request:
 
-# Two pushes close together must not both decide no release exists and both try to create one.
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
@@ -57,16 +40,12 @@ jobs:
           distribution: temurin
           java-version: '24'
 
-      # Re-run rather than depend on the gate job: the gate ran in a different runner with a different
-      # checkout, and a release artifact must be built from the commit that is actually being released.
       - name: Build and package
         run: |
           sh scripts/build.sh
           sh scripts/test.sh
           sh scripts/package.sh
 
-      # The tag names the commit, so it is the same for every run of this workflow on this commit and
-      # a rerun finds the release it made last time instead of making a second one.
       - name: Name the release after the commit
         id: tag
         run: |
@@ -81,8 +60,6 @@ jobs:
         run: |
           tag="${{ steps.tag.outputs.tag }}"
 
-          # Idempotent by release rather than by tag: if someone pushed the tag without the release,
-          # `gh release create --verify-tag` would attach it, and if both exist there is nothing to do.
           if gh release view "$tag" > /dev/null 2>&1; then
             echo "[INFO] release $tag already exists, nothing to do."
             exit 0
@@ -91,8 +68,6 @@ jobs:
           git tag "$tag" "$GITHUB_SHA"
           git push origin "refs/tags/$tag"
 
-          # The commits since the last release, as the release notes. There is no changelog to slice
-          # up, so the history is what says what this build is.
           gh release create "$tag" \
             --title "Rooms $tag" \
             --generate-notes \

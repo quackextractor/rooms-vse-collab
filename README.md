@@ -15,7 +15,9 @@ Or download a release zip and double-click `play.cmd` (`java -jar rooms.jar` fro
 
 `rooms.csv` must sit in the working directory. Its format is described in [map guide.txt](map%20guide.txt), the map itself in [map.png](map.png).
 
-Controls: `N/E/S/W` move, `L` look, `I` inventory, `P` pick up, `D` discard, `M` map, `H` help, `Q` quit.
+Menu: `1` new game, `2` continue, `3` exit. Progress saves to `savegame.dat` after every move; winning or dying deletes it.
+
+Controls: `N/E/S/W` move, `L` look, `I` inventory, `P` pick up, `D` discard, `M` map, `U` undo, `H` help, `Q` save and quit. Undo reverses moves, pick-ups and discards back to the last fight.
 
 ## Docs
 
@@ -37,7 +39,6 @@ Pushing to `master` publishes: `.github/workflows/release.yml` builds `rooms.jar
 
 ## Build
 
-Plain POSIX shell scripts (`scripts/build.sh`, `scripts/test.sh`, `scripts/package.sh`) and raw JDK tools (`javac`, `java`, `jar`). No Gradle or Maven.
-The codebase compiles from scratch in about two seconds, and the only external dependency is a standalone JUnit jar in `lib/`. A build tool would spend longer downloading its wrapper, starting a background daemon, and resolving a task graph than `javac` takes to finish the whole build, especially on cold GitHub Actions runners.
+`sh scripts/build.sh` compiles, `sh scripts/test.sh` runs the JUnit tests, `sh scripts/package.sh` builds the release zip. Plain JDK tools, no Gradle or Maven. Run `install-hooks.ps1` once per clone.
 
 MIT licensed.

@@ -1,33 +1,6 @@
 #!/bin/sh
-#
-# Packages what a release actually contains: a runnable jar, the map it loads, and the picture of it.
-#
-# rooms.csv travels beside the jar rather than inside it, because Main opens it from the *working
-# directory* rather than from the classpath (`new FileReader(filePath)` in MapLoader). A jar that
-# carried it would need a loader change - read the working directory first, fall back to a classpath
-# resource - before it ran anywhere but next to its source. The other option was chosen against for
-# now; a single downloadable file is the better artifact and the loader fix is about six lines, so
-# revisit it when there is a reason to.
-#
-# map.png is the map drawn as a picture. The CSV is the level; this is what a player reads it
-# against, and a release without it is a release that cannot be played without a second download.
-#
-# play.cmd is the launcher, and it is not decoration. Double-clicking a .jar hands it to javaw or a
-# console with no stdin, so the game starts, prints the opening and dies on the first read - which is
-# exactly what a fresh download did. A .cmd is opened by cmd.exe with a real console attached, and
-# its pause keeps the window up when the game exits.
-#
-# README.txt is the instructions for whoever unpacks this, and it is not the repository's README.md:
-# that one explains the build, the hooks and the release process to someone working on the code. A
-# player needs the controls, the Java version and the reason the csv has to travel with the jar.
-#
-# `jar` builds the zip. Git for Windows ships no `zip`, and a .zip made by `jar` is a zip: the format
-# is the container, and both Windows Explorer and `unzip` open the result without being told anything
-# about how it was made.
-
 set -e
 
-# Resolved from this file's own location, not from the cwd, for the same reason as build.sh.
 script_dir=$(cd "$(dirname "$0")" && pwd)
 cd "$(git -C "$script_dir" rev-parse --show-toplevel)"
 
@@ -39,10 +12,7 @@ fi
 mkdir -p out/dist
 rm -f out/dist/rooms.jar out/dist/rooms.zip
 
-# `jar` is not always on PATH. Oracle's javapath shims ship java, javac and javaw but no jar, so a
-# machine with a perfectly good JDK installed can fail on "jar: command not found". Ask the JVM where
-# it lives rather than guessing: java.home is the JDK root, and the backslashes it prints become
-# forward slashes because MSYS resolves those and not the other kind.
+# Oracle's javapath shims ship no jar, so fall back to the JDK that java reports.
 jar_tool=""
 if command -v jar > /dev/null 2>&1; then
     jar_tool=$(command -v jar)
@@ -64,16 +34,15 @@ if [ -z "$jar_tool" ]; then
     exit 1
 fi
 
-# --main-class is what turns a pile of class files into something `java -jar` will start.
 "$jar_tool" --create --file out/dist/rooms.jar --main-class Main -C out/classes .
 
+# rooms.csv ships beside the jar because MapLoader reads it from the working directory.
 cp rooms.csv out/dist/rooms.csv
 cp map.png out/dist/map.png
 cp play.cmd out/dist/play.cmd
 cp README.txt out/dist/README.txt
 
-# --no-manifest: without it `jar` writes a META-INF/MANIFEST.MF into the zip as well, and the first
-# thing a player sees when they unpack a release is a folder of build plumbing they did not ask for.
+# Git for Windows has no zip; a jar without a manifest is a plain zip.
 "$jar_tool" --create --file out/dist/rooms.zip --no-manifest \
     -C out/dist rooms.jar -C out/dist rooms.csv -C out/dist map.png \
     -C out/dist play.cmd -C out/dist README.txt

@@ -1,10 +1,6 @@
-# The hooks and the build scripts are executed by sh, including on Windows. A CRLF in the shebang
-# line makes the interpreter unresolvable and git skips the hook without saying so - a gate that
-# silently stops running is worse than one that fails, because nothing reports it.
+# sh cannot run a script with CRLF in its shebang.
 hooks/*   text eol=lf
 scripts/* text eol=lf
 
-# The opposite rule for the launcher, and for the same reason: cmd.exe is the interpreter, it reads
-# batch files line by line, and a batch file checked out on Linux - which is where the release is
-# built - must still arrive at a Windows player with CRLF intact.
+# cmd.exe needs CRLF, and the release is built on Linux.
 play.cmd text eol=crlf

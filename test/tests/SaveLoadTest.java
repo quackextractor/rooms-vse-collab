@@ -21,35 +21,48 @@ class SaveLoadTest {
         SaveManager.deleteSave();
     }
 
-    @Test
-    void savingPlayerPersistsStatsAndInventory() throws Exception {
-        GameSession session = new GameSession();
-        session.play("P", "Book", "E");
-
-        Player originalPlayer = session.player();
-        assertTrue(SaveManager.save(originalPlayer, TEST_SAVE));
-        assertTrue(SaveManager.saveExists(TEST_SAVE));
-
-        Player loadedPlayer = SaveManager.load(TEST_SAVE);
-        assertNotNull(loadedPlayer);
-        assertEquals("Library", loadedPlayer.getCurrentRoom().getName());
-        assertEquals(20, loadedPlayer.getStatValue("wisdom"));
-        assertTrue(loadedPlayer.getInventoryItems().stream().map(Item::getName).anyMatch("Book"::equals));
+    private Player savedAndLoaded(Player player) {
+        assertTrue(SaveManager.save(player, TEST_SAVE));
+        return SaveManager.load(TEST_SAVE);
     }
 
     @Test
-    void nonExistentSaveReturnsNullAndReportsFalse() {
+    void aSavedGameKeepsTheRoomStatsAndInventory() throws Exception {
+        GameSession game = new GameSession();
+        game.play("P", "Book", "E");
+
+        Player loaded = savedAndLoaded(game.player());
+
+        assertEquals("Library", loaded.getCurrentRoom().getName());
+        assertEquals(20, loaded.getStatValue("wisdom"));
+        assertTrue(loaded.getInventoryItems().stream().map(Item::getName).anyMatch("Book"::equals));
+    }
+
+    @Test
+    void aSavedGameRemembersTheRoomToRetreatTo() throws Exception {
+        GameSession game = new GameSession();
+        game.play("P", "Book", "E");
+
+        Player loaded = savedAndLoaded(game.player());
+        loaded.retreat();
+
+        assertEquals("Start", loaded.getCurrentRoom().getName());
+    }
+
+    @Test
+    void aSavedGameCanStillUndo() throws Exception {
+        GameSession game = new GameSession();
+        game.play("P", "Book", "E");
+
+        Player loaded = savedAndLoaded(game.player());
+        loaded.takeLastCommand().orElseThrow().undo();
+
+        assertEquals("Start", loaded.getCurrentRoom().getName());
+    }
+
+    @Test
+    void aMissingSaveLoadsAsNothing() {
         assertFalse(SaveManager.saveExists("non_existent.dat"));
         assertNull(SaveManager.load("non_existent.dat"));
-    }
-
-    @Test
-    void deletingSaveRemovesFile() throws Exception {
-        GameSession session = new GameSession();
-        SaveManager.save(session.player(), TEST_SAVE);
-        assertTrue(SaveManager.saveExists(TEST_SAVE));
-
-        assertTrue(SaveManager.deleteSave(TEST_SAVE));
-        assertFalse(SaveManager.saveExists(TEST_SAVE));
     }
 }

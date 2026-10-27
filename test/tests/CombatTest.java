@@ -27,8 +27,9 @@ class CombatTest {
     }
 
     @Test
-    void refusingToFightTakesThePlayerBack() throws Exception {
+    void refusingToFightTakesThePlayerBackEvenThroughALockedDoor() throws Exception {
         GameSession game = nextToTheArena();
+        game.play("D", "Book");
 
         game.play("N", "N");
 
@@ -78,6 +79,16 @@ class CombatTest {
         game.play("N", "Y");
 
         assertTrue(game.printed("Do you wish to proceed? [Y/N]", "You attack Goblin for 10 damage.", "(10|20)"));
+    }
+
+    @Test
+    void aPlayerWithNoHealthDiesEvenFacingAnEnemy() throws Exception {
+        GameSession game = new GameSession(2);
+        game.player().setStatValue("health", 0);
+
+        game.play("Y");
+
+        assertTrue(game.printed("You died."));
     }
 
     @Test

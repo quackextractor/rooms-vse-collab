@@ -4,6 +4,7 @@ import enemy.Enemy;
 import items.Item;
 import items.Weapon;
 import myExceptions.ParsingLevelException;
+import room.Direction;
 import room.Room;
 import room.RoomCondition;
 
@@ -11,6 +12,7 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.Function;
 
@@ -22,7 +24,7 @@ public class MapLoader {
         int lineCount = 0;
         String line;
 
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath, StandardCharsets.UTF_8))) {
             while ((line = br.readLine()) != null) {
                 lineCount++;
                 if (lineCount == 1 && line.startsWith(BYTE_ORDER_MARK)) {
@@ -118,12 +120,16 @@ public class MapLoader {
             throw new ParsingLevelException("The map has no room 0, which is where the game starts.");
         }
         for (Room room : roomMap.values()) {
-            for (int exit : new int[]{room.getNorth(), room.getEast(), room.getSouth(), room.getWest()}) {
+            for (Direction direction : Direction.values()) {
+                int exit = room.getExit(direction);
                 if (exit != -1 && !roomMap.containsKey(exit)) {
                     throw new ParsingLevelException("Room " + room.getId() + " has an exit to room " + exit
                             + ", which does not exist. Use -1 for a wall.");
                 }
             }
+        }
+        if (roomMap.values().stream().noneMatch(Room::isWinRoom)) {
+            throw new ParsingLevelException("The map has no win room, so the game cannot be won.");
         }
     }
 }

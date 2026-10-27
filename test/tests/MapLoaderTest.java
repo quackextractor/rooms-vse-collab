@@ -34,30 +34,30 @@ class MapLoaderTest {
 
         assertEquals(5, rooms.size());
         assertEquals("Library", rooms.get(1).getName());
-        assertEquals("Sword", rooms.get(1).getWeapons().get(0).getName());
+        assertEquals("[Potion {health=30}, Sword {strength=5, damage 10}]", rooms.get(1).getAvailableItems().toString());
         assertEquals("The door is locked.", rooms.get(1).getConditions().get(0).getMessage());
-        assertEquals("Goblin", rooms.get(2).getEnemies().get(0).getName());
+        assertEquals("Goblin", rooms.get(2).getAvailableEnemies().get(0).getName());
         assertTrue(rooms.get(5).isWinRoom());
         assertTrue(rooms.get(9).isSecret());
     }
 
     @Test
     void aDescriptionMayContainACommaFollowedByASpace() throws Exception {
-        Map<Integer, Room> rooms = load("0,Start,-1,-1,-1,-1,A nice room, full of nice things.");
+        Map<Integer, Room> rooms = load("0,Start,-1,-1,-1,-1,A nice room, full of nice things.,,,,,,true");
 
         assertEquals("A nice room, full of nice things.", rooms.get(0).getDescription());
     }
 
     @Test
     void severalEnemiesCanShareARoom() throws Exception {
-        Map<Integer, Room> rooms = load("0,Start,-1,-1,-1,-1,Rats.,,Rat:5:3:25;Rat:5:3:25;Fat Rat:20:10:0");
+        Map<Integer, Room> rooms = load("0,Start,-1,-1,-1,-1,Rats.,,Rat:5:3:25;Rat:5:3:25;Fat Rat:20:10:0,,,,true");
 
-        assertEquals(3, rooms.get(0).getEnemies().size());
+        assertEquals(3, rooms.get(0).getAvailableEnemies().size());
     }
 
     @Test
     void aMapSavedWithAByteOrderMarkStillLoads() throws Exception {
-        Map<Integer, Room> rooms = load("﻿0,Start,-1,-1,-1,-1,The start.");
+        Map<Integer, Room> rooms = load("﻿0,Start,-1,-1,-1,-1,The start.,,,,,,true");
 
         assertEquals("Start", rooms.get(0).getName());
     }
@@ -82,6 +82,11 @@ class MapLoaderTest {
     @Test
     void anExitToARoomThatDoesNotExistIsRefused() {
         assertRefused("exit to room 99", "0,Start,-1,99,-1,-1,The start.");
+    }
+
+    @Test
+    void aMapWithoutAWinRoomIsRefused() {
+        assertRefused("no win room", "0,Start,-1,-1,-1,-1,The start.");
     }
 
     @Test

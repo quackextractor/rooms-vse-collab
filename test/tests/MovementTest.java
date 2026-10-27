@@ -101,7 +101,7 @@ class MovementTest {
 
         game.play("H");
 
-        for (String key : new String[]{"I", "P", "D", "L", "M", "Q"}) {
+        for (String key : new String[]{"I", "P", "D", "L", "M", "U", "Q"}) {
             assertTrue(game.printed("- " + key + " to "), "the help is missing " + key);
         }
     }

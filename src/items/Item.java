@@ -22,9 +22,7 @@ public class Item implements Serializable {
 
     @Override
     public String toString() {
-        return
-                name + " " +
-                        stats;
+        return name + " " + stats;
     }
 
     public String getName() {

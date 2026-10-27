@@ -1,23 +1,7 @@
 #!/bin/sh
-#
-# Pre-commit gate: build, run the JUnit tests, and refuse the commit if either fails.
-#
-# Installed by install-hooks.ps1; the tracked copy lives in hooks/. .git/hooks is not in the
-# repository, so a fresh clone has to run the installer once before its first commit.
-#
-# The build and the tests abort the commit. The gate is never bypassed: a hook that can be
-# skipped with --no-verify is a suggestion, and the value here is that a broken tree stops the commit
-# rather than being noticed by whoever runs the game next.
-
 set -e
 
-# Resolved from this file's own location, not from the working directory. git runs a hook with the
-# worktree root as its cwd, but this is also run by hand - and a hook that resolves the repository
-# from the cwd will act inside whichever repository the shell happens to be sitting in.
-#
-# Two shapes, because this file is both a tracked copy under <root>/hooks and the installed copy
-# under <root>/.git/hooks. `git rev-parse --show-toplevel` cannot be run from inside .git at all:
-# there is no work tree there, so it exits 128 and the hook dies where it is most needed.
+# This file runs from hooks/ and, once installed, from .git/hooks/, where rev-parse has no work tree.
 hook_dir=$(cd "$(dirname "$0")" && pwd)
 
 case "$hook_dir" in
@@ -32,8 +16,6 @@ fi
 
 cd "$repo_root"
 
-# Do not run these by hand before committing. This hook runs them, which is why they are cheap enough
-# to run on every commit: javac over every file under src/, then the JUnit tests.
 echo "[INFO] building and testing"
 
 if ! sh scripts/build.sh; then

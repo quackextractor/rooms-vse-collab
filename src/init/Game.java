@@ -4,6 +4,7 @@ import myExceptions.ParsingLevelException;
 import player.Player;
 import player.PlayerController;
 import room.Room;
+import utilities.Console;
 import utilities.Logic;
 import utilities.MapLoader;
 import utilities.SaveManager;
@@ -11,6 +12,7 @@ import utilities.SaveManager;
 import java.util.Map;
 
 public class Game {
+    private static final String MAP_FILE = "rooms.csv";
     private final Menu menu;
 
     public Game() {
@@ -22,14 +24,17 @@ public class Game {
     }
 
     public void run() throws ParsingLevelException {
-        Logic.printToUser(" \n");
-        MapLoader.loadMap("rooms.csv");
+        Map<Integer, Room> roomMap = MapLoader.loadMap(MAP_FILE);
 
         while (true) {
-            Menu.Action action = menu.promptChoice();
-            switch (action) {
+            switch (menu.promptChoice()) {
                 case NEW_GAME:
-                    startNewGame();
+                    if (SaveManager.saveExists() && !Console.confirm("This replaces your saved game. Start a new game?")) {
+                        break;
+                    }
+                    Player player = new Player(roomMap.get(0), roomMap);
+                    SaveManager.save(player);
+                    play(player);
                     return;
                 case CONTINUE:
                     if (!SaveManager.saveExists()) {
@@ -38,43 +43,31 @@ public class Game {
                     }
                     Player savedPlayer = SaveManager.load();
                     if (savedPlayer == null) {
-                        Logic.printToUser("Failed to load saved game.");
+                        Logic.printToUser("The saved game is from another version of Rooms and cannot be loaded. Start a new game.");
                         break;
                     }
-                    continueGame(savedPlayer);
+                    Logic.printToUser("Continuing game...");
+                    play(savedPlayer);
                     return;
                 case EXIT:
-                    Logic.printToUser("Quitting. Goodbye!");
-                    System.exit(0);
                     return;
             }
         }
     }
 
-    private void startNewGame() throws ParsingLevelException {
-        Map<Integer, Room> roomMap = MapLoader.loadMap("rooms.csv");
-        Room initialRoom = roomMap.get(0);
-        Player player = new Player(initialRoom, roomMap);
-        SaveManager.save(player);
-        playGame(player, initialRoom.getDescription());
-    }
-
-    private void continueGame(Player player) {
-        Logic.printToUser("Continuing game...");
-        playGame(player, player.getCurrentRoom().getDescription());
-    }
-
-    private void playGame(Player player, String openingDescription) {
-        PlayerController playerController = new PlayerController(player);
+    private void play(Player player) {
+        PlayerController controller = new PlayerController(player);
         PlayerController.printHelp();
         Logic.printToUser("");
-        if (!openingDescription.isEmpty()) {
-            Logic.printToUser(openingDescription);
+        String description = player.getCurrentRoom().getDescription();
+        if (!description.isEmpty()) {
+            Logic.printToUser(description);
         }
         player.showMap();
 
-        while (true) {
-            playerController.getPlayerInput(player);
+        boolean playing = true;
+        while (playing) {
+            playing = controller.playTurn();
         }
     }
 }

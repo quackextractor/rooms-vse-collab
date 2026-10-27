@@ -4,9 +4,12 @@ import player.Player;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 public class SaveManager {
     public static final String DEFAULT_SAVE_FILE = "savegame.dat";
@@ -27,10 +30,17 @@ public class SaveManager {
     }
 
     public static boolean save(Player player, String path) {
-        try (ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(path))) {
-            out.writeObject(player);
+        Path target = Path.of(path);
+        Path draft = Path.of(path + ".tmp");
+        try {
+            try (OutputStream file = Files.newOutputStream(draft);
+                 ObjectOutputStream out = new ObjectOutputStream(file)) {
+                out.writeObject(player);
+            }
+            Files.move(draft, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
             return true;
         } catch (Exception e) {
+            Logic.printToUser("Could not save the game: " + e.getMessage());
             return false;
         }
     }

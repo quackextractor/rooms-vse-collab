@@ -4,28 +4,24 @@ import enemy.Enemy;
 import items.Item;
 import items.Weapon;
 import player.Player;
-import utilities.Logic;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 public class Room implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
     private final int id;
     private final String name;
     private final String description;
     private final String combatMessage;
     private final boolean isWinRoom;
     private final boolean isSecret;
-    private final List<Item> items;
-    private final List<Weapon> weapons;
     private final List<RoomCondition> conditions;
-    private final List<Enemy> enemies;
     private final List<Item> availableItems;
     private final List<Enemy> availableEnemies;
-    private final List<Item> pickedUpItems = new ArrayList<>();
     private final int north;
     private final int east;
     private final int south;
@@ -43,15 +39,12 @@ public class Room implements Serializable {
         this.id = id;
         this.name = name;
         this.description = Objects.requireNonNull(description, "description");
-        this.items = List.copyOf(items);
-        this.enemies = List.copyOf(enemies);
         this.combatMessage = Objects.requireNonNull(combatMessage, "combatMessage");
-        this.weapons = List.copyOf(weapons);
         this.conditions = List.copyOf(conditions);
-        this.north = exit(north);
-        this.east = exit(east);
-        this.south = exit(south);
-        this.west = exit(west);
+        this.north = checkExit(north);
+        this.east = checkExit(east);
+        this.south = checkExit(south);
+        this.west = checkExit(west);
         this.isWinRoom = isWinRoom;
         this.winMessage = Objects.requireNonNull(winMessage, "winMessage");
         this.isSecret = isSecret;
@@ -60,22 +53,26 @@ public class Room implements Serializable {
         this.availableEnemies = new ArrayList<>(enemies);
     }
 
-    private int exit(int roomId) {
+    private int checkExit(int roomId) {
         if (roomId < -1) {
             throw new IllegalArgumentException("Room " + id + " has an exit to " + roomId + ". Use -1 for a wall.");
         }
         return roomId;
     }
 
-    public boolean canEnter(Player player) {
-        for (RoomCondition condition : getConditions()) {
-            int playerStatValue = player.getStatValue(condition.getStat());
-            if (playerStatValue < condition.getMinValue()) {
-                Logic.printToUser("Cannot enter room: " + condition.getMessage());
-                return false;
-            }
-        }
-        return true;
+    public Optional<RoomCondition> unmetCondition(Player player) {
+        return conditions.stream()
+                .filter(condition -> player.getStatValue(condition.getStat()) < condition.getMinValue())
+                .findFirst();
+    }
+
+    public int getExit(Direction direction) {
+        return switch (direction) {
+            case NORTH -> north;
+            case EAST -> east;
+            case SOUTH -> south;
+            case WEST -> west;
+        };
     }
 
     public String getWinMessage() {
@@ -102,44 +99,12 @@ public class Room implements Serializable {
         return combatMessage;
     }
 
-    public List<Item> getItems() {
-        return items;
-    }
-
-    public List<Weapon> getWeapons() {
-        return weapons;
-    }
-
     public List<RoomCondition> getConditions() {
         return conditions;
     }
 
-    public List<Enemy> getEnemies() {
-        return enemies;
-    }
-
-    public int getNorth() {
-        return north;
-    }
-
-    public int getEast() {
-        return east;
-    }
-
-    public int getSouth() {
-        return south;
-    }
-
-    public int getWest() {
-        return west;
-    }
-
     public List<Item> getAvailableItems() {
         return availableItems;
-    }
-
-    public List<Item> getPickedUpItems() {
-        return pickedUpItems;
     }
 
     public List<Enemy> getAvailableEnemies() {

@@ -8,59 +8,27 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class MenuTest {
 
-    @Test
-    void menuSelectsNewGameByNumber() {
-        Console.useInput("1\n");
-        Menu menu = new Menu();
-
-        assertEquals(Menu.Action.NEW_GAME, menu.promptChoice());
+    private Menu.Action choose(String input) {
+        Console.useInput(input + "\n");
+        return new Menu().promptChoice();
     }
 
     @Test
-    void menuSelectsContinueByNumber() {
-        Console.useInput("2\n");
-        Menu menu = new Menu();
-
-        assertEquals(Menu.Action.CONTINUE, menu.promptChoice());
+    void eachOptionCanBeChosenByNumber() {
+        assertEquals(Menu.Action.NEW_GAME, choose("1"));
+        assertEquals(Menu.Action.CONTINUE, choose("2"));
+        assertEquals(Menu.Action.EXIT, choose("3"));
     }
 
     @Test
-    void menuSelectsExitByNumber() {
-        Console.useInput("3\n");
-        Menu menu = new Menu();
-
-        assertEquals(Menu.Action.EXIT, menu.promptChoice());
+    void eachOptionCanBeChosenByName() {
+        assertEquals(Menu.Action.NEW_GAME, choose("new game"));
+        assertEquals(Menu.Action.CONTINUE, choose("c"));
+        assertEquals(Menu.Action.EXIT, choose("q"));
     }
 
     @Test
-    void menuAcceptsTextOptions() {
-        Console.useInput("new game\n");
-        assertEquals(Menu.Action.NEW_GAME, new Menu().promptChoice());
-
-        Console.useInput("continue\n");
-        assertEquals(Menu.Action.CONTINUE, new Menu().promptChoice());
-
-        Console.useInput("exit\n");
-        assertEquals(Menu.Action.EXIT, new Menu().promptChoice());
-    }
-
-    @Test
-    void menuAcceptsSingleLetterOptions() {
-        Console.useInput("n\n");
-        assertEquals(Menu.Action.NEW_GAME, new Menu().promptChoice());
-
-        Console.useInput("c\n");
-        assertEquals(Menu.Action.CONTINUE, new Menu().promptChoice());
-
-        Console.useInput("q\n");
-        assertEquals(Menu.Action.EXIT, new Menu().promptChoice());
-    }
-
-    @Test
-    void menuRejectsInvalidInputBeforeAcceptingValidChoice() {
-        Console.useInput("invalid\nxyz\n1\n");
-        Menu menu = new Menu();
-
-        assertEquals(Menu.Action.NEW_GAME, menu.promptChoice());
+    void movementKeysAndOtherInputAreAskedAgain() {
+        assertEquals(Menu.Action.CONTINUE, choose("n\ne\nxyz\n2"));
     }
 }

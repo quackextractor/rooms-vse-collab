@@ -3,12 +3,14 @@ package player;
 import commands.*;
 import enemy.Combat;
 import items.Item;
+import room.Direction;
+import room.Room;
 import utilities.Console;
 import utilities.Logic;
 import utilities.SaveManager;
 
 import java.util.List;
-import java.util.Stack;
+import java.util.Optional;
 
 public class PlayerController {
     private static final List<String> HELP_ACTIONS = List.of(
@@ -18,14 +20,13 @@ public class PlayerController {
             "D to discard item",
             "L to look around you",
             "M to show the map",
-            "Q to quit"
+            "U to undo the last move, pick-up or discard (not past a fight)",
+            "Q to save and quit"
     );
-    private static Stack<Command> commandHistory;
-    private Player player;
+    private final Player player;
 
     public PlayerController(Player player) {
         this.player = player;
-        commandHistory = new Stack<>();
     }
 
     public static void printHelp() {
@@ -38,53 +39,46 @@ public class PlayerController {
         Logic.printToUser("Press H to bring up this help.");
     }
 
-    public static void undoLastMove() {
-        if (!commandHistory.isEmpty()) {
-            Command lastCommand = commandHistory.pop();
-            lastCommand.undo();
-        } else {
-            Logic.printToUser("Nowhere to go.");
+    public boolean playTurn() {
+        Room room = player.getCurrentRoom();
+        if (player.getStatValue("health") <= 0) {
+            return endGame("You died.");
         }
+        if (room.isWinRoom()) {
+            return endGame(room.getWinMessage());
+        }
+        if (!room.getAvailableEnemies().isEmpty()) {
+            player.forgetHistory();
+            Combat.confront(player);
+            SaveManager.save(player);
+            return true;
+        }
+        return handle(Console.readLine().trim().toUpperCase());
     }
 
-    public void getPlayerInput(Player player) {
+    private boolean endGame(String message) {
+        SaveManager.deleteSave();
+        Logic.printToUser(message);
+        return false;
+    }
 
-        if (!player.getCurrentRoom().getAvailableEnemies().isEmpty()) {
-            Combat.warn(player, player.getCurrentRoom().getAvailableEnemies());
-            SaveManager.save(player);
-            return;
-        }
-
-        if (player.getCurrentRoom().isWinRoom()) {
-            SaveManager.deleteSave();
-            Logic.printToUser(player.getCurrentRoom().getWinMessage());
-            System.exit(0);
-        }
-
-        if (player.getStatValue("health") <= 0) {
-            SaveManager.deleteSave();
-            Logic.printToUser("You died.");
-            System.exit(0);
-        }
-
-        String input = Console.readLine().toUpperCase();
-
+    private boolean handle(String input) {
         switch (input) {
             case "N":
-                executeCommand(new MoveNorthCommand(player));
+                execute(new MoveCommand(player, Direction.NORTH));
                 break;
             case "E":
-                executeCommand(new MoveEastCommand(player));
+                execute(new MoveCommand(player, Direction.EAST));
                 break;
             case "S":
-                executeCommand(new MoveSouthCommand(player));
+                execute(new MoveCommand(player, Direction.SOUTH));
                 break;
             case "W":
-                executeCommand(new MoveWestCommand(player));
+                execute(new MoveCommand(player, Direction.WEST));
                 break;
             case "I":
-                player.showInventory();
-                player.showStats();
+                PlayerView.showInventory(player);
+                PlayerView.showStats(player);
                 break;
             case "P":
                 pickUpItem();
@@ -93,59 +87,68 @@ public class PlayerController {
                 discardItem();
                 break;
             case "L":
-                executeCommand(new ShowItemsCommand(player));
+                PlayerView.showItemsInRoom(player.getCurrentRoom());
                 break;
             case "M":
                 player.showMap();
                 break;
-            case "Q":
-                SaveManager.save(player);
-                Logic.printToUser("Quitting. Goodbye!");
-                System.exit(0);
+            case "U":
+                undo();
+                break;
             case "H":
                 printHelp();
                 break;
+            case "Q":
+                if (SaveManager.save(player)) {
+                    Logic.printToUser("Game saved.");
+                }
+                return false;
             default:
-                Logic.printToUser("Invalid input. Please enter N, E, S, W, I, P, D, L, M, H or Q.");
+                Logic.printToUser("Invalid input. Please enter N, E, S, W, I, P, D, L, M, U, H or Q.");
+        }
+        return true;
+    }
+
+    private void execute(Command command) {
+        if (command.execute()) {
+            player.record(command);
+            SaveManager.save(player);
         }
     }
 
-    private void executeCommand(Command command) {
-        command.execute();
-        commandHistory.push(command);
+    private void undo() {
+        Optional<Command> last = player.takeLastCommand();
+        if (last.isEmpty()) {
+            Logic.printToUser("Nothing to undo.");
+            return;
+        }
+        last.get().undo();
         SaveManager.save(player);
     }
 
-    private void undoLastAction() {
-        if (!commandHistory.isEmpty()) {
-            Command lastCommand = commandHistory.pop();
-            lastCommand.undo();
-            Logic.printToUser("Undone last action.");
-        } else {
-            Logic.printToUser("Nothing to undo.");
-        }
-    }
-
     private void pickUpItem() {
-        player.showItemsInRoom();
+        PlayerView.showItemsInRoom(player.getCurrentRoom());
         Logic.printToUser("Enter the number or name of the item you want to pick up: ");
         Item item = findItem(player.getCurrentRoom().getAvailableItems(), Console.readLine());
-        if (item != null) {
-            executeCommand(new PickUpItemCommand(player, item));
-        } else {
+        if (item == null) {
             Logic.printToUser("No such item. Type its number or its name as listed above.");
+            return;
         }
+        execute(new PickUpItemCommand(player, item));
+        PlayerView.showStats(player);
+        PlayerView.showItemsInRoom(player.getCurrentRoom());
     }
 
     private void discardItem() {
-        player.showInventory();
+        PlayerView.showInventory(player);
         Logic.printToUser("Enter the number or name of the item you want to discard: ");
         Item item = findItem(player.getInventoryItems(), Console.readLine());
-        if (item != null) {
-            executeCommand(new DiscardItemCommand(player, item));
-        } else {
+        if (item == null) {
             Logic.printToUser("No such item. Type its number or its name as listed above.");
+            return;
         }
+        execute(new DiscardItemCommand(player, item));
+        PlayerView.showStats(player);
     }
 
     private Item findItem(List<Item> items, String input) {

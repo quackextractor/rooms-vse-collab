@@ -32,8 +32,9 @@ public class GameSession {
         System.setOut(new PrintStream(output, true));
         try {
             Console.useInput(String.join("\n", lines) + "\n");
-            while (Console.hasInput()) {
-                controller.getPlayerInput(player);
+            boolean playing = true;
+            while (playing && Console.hasInput()) {
+                playing = controller.playTurn();
             }
         } finally {
             System.setOut(screen);

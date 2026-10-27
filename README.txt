@@ -21,6 +21,12 @@ rooms.csv   the level, read from the folder the game is started in
 map.png     the same level, drawn
 play.cmd    Windows launcher
 
+Saving
+------
+
+1 starts a new game, 2 continues the saved one. The game saves to
+savegame.dat in this folder after every move. Winning or dying deletes it.
+
 Controls
 --------
 
@@ -30,8 +36,10 @@ I            inventory and stats
 P            pick up an item
 D            discard an item
 M            map of discovered rooms
+U            undo the last move, pick-up or discard (not past a fight)
 H            help
-Q            quit
+Q            save and quit
+Y, N         fight or back away when an enemy blocks the room
 
 Documentation (Czech):
 https://docs.google.com/document/d/1T-GgtVTeWU5gGcM30NfqiNvnhVv8UQBvjJlyul5rVAU/edit?usp=sharing

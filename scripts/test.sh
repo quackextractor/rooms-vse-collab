@@ -1,10 +1,4 @@
 #!/bin/sh
-#
-# Runs the JUnit tests under test/ against the game under src/.
-#
-# Played from out/test with its own copy of rooms.csv, because Logic.printToUser appends every line
-# to log.txt in the working directory.
-
 set -e
 
 script_dir=$(cd "$(dirname "$0")" && pwd)
@@ -19,6 +13,7 @@ cp rooms.csv out/test/rooms.csv
 git ls-files --cached --others --exclude-standard -- 'src/*.java' 'test/*.java' > out/test-sources.txt
 javac --release 17 -encoding UTF-8 -cp "$junit" -d out/test-classes @out/test-sources.txt
 
+# Runs from out/test so log.txt and savegame.dat never land in the work tree.
 cd out/test
 
 # A test that reaches System.exit ends the JVM with code 0 before JUnit prints its summary.

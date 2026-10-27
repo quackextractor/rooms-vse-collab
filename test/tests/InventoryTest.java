@@ -94,6 +94,17 @@ class InventoryTest {
     }
 
     @Test
+    void discardingAHealthItemNeverKillsThePlayer() throws Exception {
+        GameSession game = new GameSession(1);
+        game.play("P", "Potion");
+        game.player().setStatValue("health", 10);
+
+        game.play("D", "Potion");
+
+        assertEquals(1, game.stat("health"));
+    }
+
+    @Test
     void healthNeverDropsBelowZero() throws Exception {
         GameSession game = new GameSession();
 
