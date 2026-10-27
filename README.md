@@ -21,6 +21,13 @@ Controls: `N/E/S/W` move, `L` look, `I` inventory, `P` pick up, `D` discard, `M`
 
 [Česká dokumentace (Google Docs)](https://docs.google.com/document/d/1T-GgtVTeWU5gGcM30NfqiNvnhVv8UQBvjJlyul5rVAU/edit?usp=sharing)
 
+## Authors
+
+- Miro Slezák (LostSoul / quackextractor)
+- Natálie Benešová (nataliebenesova07)
+- Klaudia Onderová (f4kfv6z8sb-star)
+- Vu Anh (Vutify / VietnameseDelegation)
+
 ## Playtester
 Martin Morávek VŠE
 
