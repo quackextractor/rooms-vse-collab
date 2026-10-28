@@ -2,8 +2,9 @@ package utilities;
 
 import player.Player;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
@@ -12,32 +13,27 @@ import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 public class SaveManager {
-    public static final String DEFAULT_SAVE_FILE = "savegame.dat";
+    private static Path saveFile = Path.of("savegame.dat");
 
     private SaveManager() {
     }
 
-    public static boolean saveExists() {
-        return saveExists(DEFAULT_SAVE_FILE);
+    public static void useFile(Path file) {
+        saveFile = file;
     }
 
-    public static boolean saveExists(String path) {
-        return new File(path).exists();
+    public static boolean saveExists() {
+        return Files.exists(saveFile);
     }
 
     public static boolean save(Player player) {
-        return save(player, DEFAULT_SAVE_FILE);
-    }
-
-    public static boolean save(Player player, String path) {
-        Path target = Path.of(path);
-        Path draft = Path.of(path + ".tmp");
+        Path draft = Path.of(saveFile + ".tmp");
         try {
             try (OutputStream file = Files.newOutputStream(draft);
                  ObjectOutputStream out = new ObjectOutputStream(file)) {
                 out.writeObject(player);
             }
-            Files.move(draft, target, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            Files.move(draft, saveFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
             return true;
         } catch (Exception e) {
             Logic.printToUser("Could not save the game: " + e.getMessage());
@@ -46,26 +42,22 @@ public class SaveManager {
     }
 
     public static Player load() {
-        return load(DEFAULT_SAVE_FILE);
-    }
-
-    public static Player load(String path) {
-        try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(path))) {
+        try (InputStream file = Files.newInputStream(saveFile);
+             ObjectInputStream in = new ObjectInputStream(file)) {
             return (Player) in.readObject();
-        } catch (Exception e) {
-            return null;
+        } catch (InvalidClassException | ClassNotFoundException | ClassCastException e) {
+            Logic.printToUser("The saved game is from another version of Rooms and cannot be loaded. Start a new game.");
+        } catch (IOException e) {
+            Logic.printToUser("Could not read the saved game: " + e);
         }
+        return null;
     }
 
-    public static boolean deleteSave() {
-        return deleteSave(DEFAULT_SAVE_FILE);
-    }
-
-    public static boolean deleteSave(String path) {
-        File file = new File(path);
-        if (file.exists()) {
-            return file.delete();
+    public static void deleteSave() {
+        try {
+            Files.deleteIfExists(saveFile);
+        } catch (IOException e) {
+            Logic.printToUser("Could not delete the saved game: " + e.getMessage());
         }
-        return false;
     }
 }

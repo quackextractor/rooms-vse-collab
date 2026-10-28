@@ -6,12 +6,15 @@ import player.PlayerController;
 import room.Room;
 import utilities.Console;
 import utilities.MapLoader;
+import utilities.SaveManager;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.nio.file.Path;
 import java.util.Map;
 
 public class GameSession {
+    public static final Path SAVE_FILE = Path.of(System.getProperty("java.io.tmpdir"), "rooms-test-savegame.dat");
     private final ByteArrayOutputStream output = new ByteArrayOutputStream();
     private final Map<Integer, Room> rooms;
     private final Player player;
@@ -22,6 +25,7 @@ public class GameSession {
     }
 
     public GameSession(int startRoomId) throws Exception {
+        SaveManager.useFile(SAVE_FILE);
         rooms = MapLoader.loadMap(TestMap.write(TestMap.ROOMS));
         player = new Player(rooms.get(startRoomId), rooms);
         controller = new PlayerController(player);

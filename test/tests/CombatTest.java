@@ -60,6 +60,17 @@ class CombatTest {
     }
 
     @Test
+    void losingAFightNeverKills() throws Exception {
+        GameSession game = nextToTheArena();
+        game.player().setStatValue("health", 1);
+
+        game.play("N", "Y");
+
+        assertEquals("Library", game.currentRoom());
+        assertEquals(1, game.stat("health"));
+    }
+
+    @Test
     void winningAFightRemovesTheEnemyAndHealsThePlayer() throws Exception {
         GameSession game = nextToTheArena();
         game.play("P", "Sword", "P", "Potion");

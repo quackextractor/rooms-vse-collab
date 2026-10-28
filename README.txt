@@ -21,6 +21,24 @@ rooms.csv   the level, read from the folder the game is started in
 map.png     the same level, drawn
 play.cmd    Windows launcher
 
+Goal
+----
+
+Reach the gate to Villedor. It opens only for strength 30 or more. Some
+other doors need a stat too; the game says which when you try them.
+
+Items and fights
+----------------
+
+Picking up an item adds its stats, discarding it takes them away again.
+Weapons add their damage to your strength when you attack.
+
+An enemy blocks the room until you fight it or back away. Whoever has more
+agility strikes first; on a tie the enemy does. Win and your health is
+restored to what it was before the fight; lose and you are
+pushed back to the previous room with half your health. Reach 0 health and
+the game is over.
+
 Saving
 ------
 

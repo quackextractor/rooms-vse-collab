@@ -1,29 +1,21 @@
 package tests;
 
 import items.Item;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import player.Player;
 import utilities.SaveManager;
 
-import java.io.File;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
+import java.nio.file.Files;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class SaveLoadTest {
-    private static final String TEST_SAVE = "test_savegame.dat";
-
-    @BeforeEach
-    @AfterEach
-    void cleanUp() {
-        new File(TEST_SAVE).delete();
-        SaveManager.deleteSave();
-    }
 
     private Player savedAndLoaded(Player player) {
-        assertTrue(SaveManager.save(player, TEST_SAVE));
-        return SaveManager.load(TEST_SAVE);
+        assertTrue(SaveManager.save(player));
+        return SaveManager.load();
     }
 
     @Test
@@ -61,8 +53,18 @@ class SaveLoadTest {
     }
 
     @Test
-    void aMissingSaveLoadsAsNothing() {
-        assertFalse(SaveManager.saveExists("non_existent.dat"));
-        assertNull(SaveManager.load("non_existent.dat"));
+    void aDamagedSaveSaysItCannotBeRead() throws Exception {
+        new GameSession();
+        Files.writeString(GameSession.SAVE_FILE, "not a save");
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        PrintStream screen = System.out;
+        System.setOut(new PrintStream(output, true));
+        try {
+            assertNull(SaveManager.load());
+        } finally {
+            System.setOut(screen);
+        }
+
+        assertTrue(output.toString().contains("Could not read the saved game"));
     }
 }

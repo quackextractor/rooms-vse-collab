@@ -1,6 +1,9 @@
 package tests;
 
+import items.Item;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -38,6 +41,16 @@ class UndoTest {
 
         assertTrue(game.carries("Potion"));
         assertEquals(10, game.stat("health"));
+    }
+
+    @Test
+    void undoingADiscardPutsTheItemBackInItsPlace() throws Exception {
+        GameSession game = new GameSession();
+        game.play("P", "Book", "E", "P", "Potion");
+
+        game.play("D", "1", "U");
+
+        assertEquals(List.of("Book", "Potion"), game.player().getInventoryItems().stream().map(Item::getName).toList());
     }
 
     @Test

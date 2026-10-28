@@ -15,9 +15,7 @@ Or download a release zip and double-click `play.cmd` (`java -jar rooms.jar` fro
 
 `rooms.csv` must sit in the working directory. Its format is described in [map guide.txt](map%20guide.txt), the map itself in [map.png](map.png).
 
-Menu: `1` new game, `2` continue, `3` exit. Progress saves to `savegame.dat` after every move; winning or dying deletes it.
-
-Controls: `N/E/S/W` move, `L` look, `I` inventory, `P` pick up, `D` discard, `M` map, `U` undo, `H` help, `Q` save and quit. Undo reverses moves, pick-ups and discards back to the last fight.
+Goal, rules, controls and saving: [README.txt](README.txt), which also ships in the release zip.
 
 ## Docs
 

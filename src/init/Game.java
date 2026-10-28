@@ -43,7 +43,6 @@ public class Game {
                     }
                     Player savedPlayer = SaveManager.load();
                     if (savedPlayer == null) {
-                        Logic.printToUser("The saved game is from another version of Rooms and cannot be loaded. Start a new game.");
                         break;
                     }
                     Logic.printToUser("Continuing game...");

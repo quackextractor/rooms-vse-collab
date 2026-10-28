@@ -68,7 +68,7 @@ public class Player implements Serializable {
             Logic.printToUser("Item not found in the room.");
             return false;
         }
-        carry(item);
+        carry(item, inventoryItems.size());
         Logic.printToUser("Picked up " + item.getName() + ".");
         for (Map.Entry<String, Integer> bonus : item.getStats().entrySet()) {
             changeStat(bonus.getKey(), bonus.getValue());
@@ -81,7 +81,7 @@ public class Player implements Serializable {
             Logic.printToUser("Item not found in the inventory.");
             return false;
         }
-        drop(item);
+        drop(item, currentRoom.getAvailableItems().size());
         for (Map.Entry<String, Integer> bonus : item.getStats().entrySet()) {
             changeStat(bonus.getKey(), -lossOnDiscard(bonus.getKey(), bonus.getValue()));
         }
@@ -89,26 +89,26 @@ public class Player implements Serializable {
         return true;
     }
 
-    public void undoPickUp(Item item, Map<String, Integer> statsBefore) {
-        drop(item);
+    public void undoPickUp(Item item, int roomIndex, Map<String, Integer> statsBefore) {
+        drop(item, roomIndex);
         Logic.printToUser("Put back " + item.getName() + ".");
         restoreStats(statsBefore);
     }
 
-    public void undoDiscard(Item item, Map<String, Integer> statsBefore) {
-        carry(item);
+    public void undoDiscard(Item item, int inventoryIndex, Map<String, Integer> statsBefore) {
+        carry(item, inventoryIndex);
         Logic.printToUser("Took back " + item.getName() + ".");
         restoreStats(statsBefore);
     }
 
-    private void carry(Item item) {
+    private void carry(Item item, int inventoryIndex) {
         currentRoom.getAvailableItems().remove(item);
-        inventoryItems.add(item);
+        inventoryItems.add(inventoryIndex, item);
     }
 
-    private void drop(Item item) {
+    private void drop(Item item, int roomIndex) {
         inventoryItems.remove(item);
-        currentRoom.getAvailableItems().add(item);
+        currentRoom.getAvailableItems().add(roomIndex, item);
     }
 
     private void restoreStats(Map<String, Integer> statsBefore) {

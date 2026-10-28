@@ -48,7 +48,7 @@ public class Combat {
         Logic.printToUser("You were beat by " + enemy.getName() + "!");
         Logic.printToUser("You stumble back into the last room.");
         player.retreat();
-        int woundedHealth = initialHealth / 2;
+        int woundedHealth = Math.max(1, initialHealth / 2);
         Logic.printToUser("Defeat left you wounded. (" + initialHealth + " -> " + woundedHealth + ")");
         player.setStatValue("health", woundedHealth);
     }
