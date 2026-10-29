@@ -1,0 +1,189 @@
+digraph Rooms {
+    graph [rankdir=TB, fontname="Helvetica", nodesep=0.4, ranksep=0.6, splines=spline, newrank=true,
+           label=<<b>Rooms</b> - class diagram<br/><font point-size="9">Each dotted region is a package. Getters, setters and most private helpers are left out.</font>>,
+           labelloc=t, fontsize=16];
+    node [shape=plain, fontname="Helvetica", fontsize=10];
+    edge [fontname="Helvetica", fontsize=9, color="#555555", fontcolor="#555555"];
+
+    subgraph cluster_init {
+        label=<<b>init</b> <font point-size="9">+ Main (default package)</font>>; fontsize=12; labeljust=l;
+        style="rounded,dotted,filled"; penwidth=1.6; color="#4a78b0"; fillcolor="#f2f6fb";
+        Main [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#cfe0f3"><b>Main</b></td></tr>
+            <tr><td align="left">+main(args)</td></tr></table>>];
+        Game [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#cfe0f3"><b>Game</b></td></tr>
+            <tr><td align="left" balign="left">+run()<br/>-newPlayer(): Player<br/>-play(player)</td></tr></table>>];
+        Menu [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#cfe0f3"><b>Menu</b></td></tr>
+            <tr><td align="left">+promptChoice(): Action</td></tr></table>>];
+        Action [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#cfe0f3"><i>«enum»</i> <b>Menu.Action</b></td></tr>
+            <tr><td align="left">NEW_GAME, CONTINUE, EXIT</td></tr></table>>];
+    }
+
+    subgraph cluster_player {
+        label=<<b>player</b>>; fontsize=12; labeljust=l;
+        style="rounded,dotted,filled"; penwidth=1.6; color="#4f9a45"; fillcolor="#f3faf1";
+        PlayerController [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#d5ecd0"><b>PlayerController</b></td></tr>
+            <tr><td align="left" balign="left">-player: Player</td></tr>
+            <tr><td align="left" balign="left">+printHelp()<br/>+playTurn(): boolean<br/>-handle(input): boolean<br/>-execute(command)<br/>-undo()</td></tr></table>>];
+        Player [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#d5ecd0"><b>Player</b> <i>Serializable</i></td></tr>
+            <tr><td align="left" balign="left">-stats: Map&lt;String, Integer&gt;<br/>-discoveredRoomIds: Set&lt;Integer&gt;<br/>-currentRoom, previousRoom: Room</td></tr>
+            <tr><td align="left" balign="left">+getStatValue(stat): int<br/>+pickUpItem(item) / discardItem(item): boolean<br/>+undoPickUp(...) / undoDiscard(...)<br/>+move(direction): boolean<br/>+retreat() / returnTo(room)<br/>+showMap()<br/>+record(command) / takeLastCommand()<br/>+forgetHistory()</td></tr></table>>];
+        PlayerView [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#d5ecd0"><b>PlayerView</b></td></tr>
+            <tr><td align="left" balign="left">+showStats(player)<br/>+showInventory(player)<br/>+showItemsInRoom(room)</td></tr></table>>];
+    }
+
+    subgraph cluster_commands {
+        label=<<b>commands</b>>; fontsize=12; labeljust=l;
+        style="rounded,dotted,filled"; penwidth=1.6; color="#c07a2c"; fillcolor="#fdf6ee";
+        Command [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#f6dfc8"><i>«interface»</i> <b>Command</b></td></tr>
+            <tr><td align="left" balign="left">+execute(): boolean<br/>+undo()</td></tr></table>>];
+        MoveCommand [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#f6dfc8"><b>MoveCommand</b></td></tr>
+            <tr><td align="left" balign="left">-player: Player<br/>-direction: Direction<br/>-from: Room</td></tr></table>>];
+        PickUpItemCommand [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#f6dfc8"><b>PickUpItemCommand</b></td></tr>
+            <tr><td align="left" balign="left">-player: Player<br/>-item: Item<br/>-statsBefore: Map<br/>-roomIndex: int</td></tr></table>>];
+        DiscardItemCommand [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#f6dfc8"><b>DiscardItemCommand</b></td></tr>
+            <tr><td align="left" balign="left">-player: Player<br/>-item: Item<br/>-statsBefore: Map<br/>-inventoryIndex: int</td></tr></table>>];
+    }
+
+    subgraph cluster_enemy {
+        label=<<b>enemy</b>>; fontsize=12; labeljust=l;
+        style="rounded,dotted,filled"; penwidth=1.6; color="#b84a4a"; fillcolor="#fcf1f1";
+        Combat [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#f3d0d0"><b>Combat</b></td></tr>
+            <tr><td align="left" balign="left">+confront(player)<br/>+damage(strength, weapons): int<br/>-fight(player, enemy, health): int</td></tr></table>>];
+        Enemy [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#f3d0d0"><b>Enemy</b> <i>Serializable</i></td></tr>
+            <tr><td align="left" balign="left">-name: String<br/>-maxHealth, health: int<br/>-strength, agility: int</td></tr>
+            <tr><td align="left" balign="left">+heal()<br/>+strikesFirstAgainst(agility): boolean<br/>+damageBeforeFalling(damage, agility): long</td></tr></table>>];
+    }
+
+    subgraph cluster_room {
+        label=<<b>room</b>>; fontsize=12; labeljust=l;
+        style="rounded,dotted,filled"; penwidth=1.6; color="#8058a8"; fillcolor="#f7f2fb";
+        Room [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#e4d6f0"><b>Room</b> <i>Serializable</i></td></tr>
+            <tr><td align="left" balign="left">-id: int<br/>-name, description: String<br/>-combatMessage, winMessage: String<br/>-north, east, south, west: int<br/>-isWinRoom, isSecret: boolean</td></tr>
+            <tr><td align="left" balign="left">+unmetCondition(player): Optional<br/>+getExit(direction): int</td></tr></table>>];
+        RoomCondition [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#e4d6f0"><b>RoomCondition</b> <i>Serializable</i></td></tr>
+            <tr><td align="left" balign="left">-stat: String<br/>-minValue: int<br/>-message: String</td></tr></table>>];
+        Direction [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#e4d6f0"><i>«enum»</i> <b>Direction</b></td></tr>
+            <tr><td align="left" balign="left">NORTH, EAST, SOUTH, WEST<br/>-columnStep, rowStep: int</td></tr></table>>];
+    }
+
+    subgraph cluster_items {
+        label=<<b>items</b>>; fontsize=12; labeljust=l;
+        style="rounded,dotted,filled"; penwidth=1.6; color="#a8962c"; fillcolor="#fcfaee";
+        Item [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#f3ecc4"><b>Item</b> <i>Serializable</i></td></tr>
+            <tr><td align="left" balign="left">-name: String<br/>-stats: Map&lt;String, Integer&gt;</td></tr></table>>];
+        Weapon [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#f3ecc4"><b>Weapon</b></td></tr>
+            <tr><td align="left">-damage: int</td></tr></table>>];
+    }
+
+    subgraph cluster_utilities_game {
+        label=<<b>utilities</b> <font point-size="9">map and saves</font>>; fontsize=12; labeljust=l;
+        style="rounded,dotted,filled"; penwidth=1.6; color="#777777"; fillcolor="#f5f5f5";
+        MapLoader [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#e2e2e2"><b>MapLoader</b></td></tr>
+            <tr><td align="left"><i>builds every Room from rooms.csv</i></td></tr>
+            <tr><td align="left" balign="left">+loadMap(filePath): Map&lt;Integer, Room&gt;<br/>-parseRoom(line): Room<br/>-validateLinks(rooms)<br/>-validateEveryRoomCanBeEntered(rooms)</td></tr></table>>];
+        SaveManager [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#e2e2e2"><b>SaveManager</b></td></tr>
+            <tr><td align="left" balign="left">-saveFile: Path</td></tr>
+            <tr><td align="left" balign="left">+useFile(file)<br/>+saveExists(): boolean<br/>+save(player): boolean<br/>+load(): Player<br/>+deleteSave()</td></tr></table>>];
+        MapView [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#e2e2e2"><b>MapView</b></td></tr>
+            <tr><td align="left">+print(rooms, discovered, currentId)</td></tr></table>>];
+    }
+
+    subgraph cluster_utilities_shared {
+        label=<<b>utilities</b> <font point-size="9">used by most classes, arrows left out</font>>; fontsize=12; labeljust=l;
+        style="rounded,dotted,filled"; penwidth=1.6; color="#777777"; fillcolor="#f5f5f5";
+        Console [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#e2e2e2"><b>Console</b></td></tr>
+            <tr><td align="left" balign="left">-scanner: Scanner</td></tr>
+            <tr><td align="left" balign="left">+useInput(input)<br/>+hasInput(): boolean<br/>+readLine(): String<br/>+confirm(question): boolean</td></tr></table>>];
+        Logic [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#e2e2e2"><b>Logic</b></td></tr>
+            <tr><td align="left">+printToUser(text)</td></tr></table>>];
+        Config [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#e2e2e2"><b>Config</b></td></tr>
+            <tr><td align="left" balign="left">file names, stat names, tunable numbers<br/><i>«enum»</i> Column: map columns in order</td></tr></table>>];
+    }
+
+    subgraph cluster_exceptions {
+        label=<<b>myExceptions</b>>; fontsize=12; labeljust=l;
+        style="rounded,dotted,filled"; penwidth=1.6; color="#b05a85"; fillcolor="#fcf2f7";
+        InputEndedException [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#f2d5e3"><b>InputEndedException</b></td></tr>
+            <tr><td align="left" balign="left">extends RuntimeException<br/><i>thrown by Console.readLine()</i></td></tr></table>>];
+        ParsingLevelException [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="white">
+            <tr><td bgcolor="#f2d5e3"><b>ParsingLevelException</b></td></tr>
+            <tr><td align="left" balign="left">extends Exception<br/><i>thrown by MapLoader.loadMap()</i></td></tr></table>>];
+    }
+
+    Legend [label=<<table border="0" cellborder="1" cellspacing="0" cellpadding="4" bgcolor="white">
+        <tr><td colspan="2"><b>Arrows</b></td></tr>
+        <tr><td>solid, hollow triangle</td><td align="left">extends</td></tr>
+        <tr><td>dashed, hollow triangle</td><td align="left">implements</td></tr>
+        <tr><td>filled diamond</td><td align="left">owns (composition)</td></tr>
+        <tr><td>hollow diamond</td><td align="left">holds a reference</td></tr>
+        <tr><td>dashed, open arrow</td><td align="left">uses / creates</td></tr></table>>];
+
+    { rank=same; Main; Legend; }
+    { rank=same; Game; Menu; Action; }
+    { rank=same; PlayerController; MapLoader; }
+    { rank=same; Player; PlayerView; SaveManager; }
+    { rank=same; Command; MapView; }
+    { rank=same; MoveCommand; PickUpItemCommand; DiscardItemCommand; Combat; }
+    { rank=same; Room; Direction; Enemy; }
+    { rank=same; Item; RoomCondition; }
+    { rank=same; Weapon; }
+    { rank=same; Console; Logic; Config; InputEndedException; ParsingLevelException; }
+    Weapon -> Logic [style=invis];
+
+    Legend -> Main [style=invis];
+    Console -> Logic -> Config [style=invis];
+
+    Main -> Game [style=dashed, arrowhead=vee];
+    Game -> Menu [dir=back, arrowtail=odiamond];
+    Menu -> Action [dir=back, arrowtail=diamond, label=" inner"];
+    Game -> PlayerController [style=dashed, arrowhead=vee];
+    Game -> MapLoader [style=dashed, arrowhead=vee];
+    Game -> SaveManager [style=dashed, arrowhead=vee];
+
+    PlayerController -> Player [dir=back, arrowtail=odiamond];
+    PlayerController -> PlayerView [style=dashed, arrowhead=vee];
+    PlayerController -> Combat [style=dashed, arrowhead=vee];
+    PlayerController -> SaveManager [style=dashed, arrowhead=vee];
+    PlayerController -> Command [style=dashed, arrowhead=vee, label=" creates"];
+
+    Player -> Command [dir=back, arrowtail=diamond, label=" history *"];
+    Player -> MapView [style=dashed, arrowhead=vee];
+    Player -> Room [dir=back, arrowtail=diamond, label=" roomMap *"];
+    Player -> Item [dir=back, arrowtail=diamond, label=" inventory *"];
+    Combat -> Enemy [style=dashed, arrowhead=vee, label=" fights"];
+
+    Command -> MoveCommand [dir=back, arrowtail=empty, style=dashed];
+    Command -> PickUpItemCommand [dir=back, arrowtail=empty, style=dashed];
+    Command -> DiscardItemCommand [dir=back, arrowtail=empty, style=dashed];
+    MoveCommand -> Direction [style=dashed, arrowhead=vee];
+
+    Room -> Item [dir=back, arrowtail=diamond, label=" items *"];
+    Room -> Enemy [dir=back, arrowtail=diamond, label=" enemies *"];
+    Room -> RoomCondition [dir=back, arrowtail=diamond, label=" conditions *"];
+    Item -> Weapon [dir=back, arrowtail=empty];
+}
