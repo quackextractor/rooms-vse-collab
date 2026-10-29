@@ -9,8 +9,11 @@ import utilities.Console;
 import utilities.Logic;
 import utilities.SaveManager;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 
 public class PlayerController {
     private static final List<String> HELP_ACTIONS = List.of(
@@ -21,12 +24,39 @@ public class PlayerController {
             "L to look around you",
             "M to show the map",
             "U to undo the last move, pick-up or discard (not past a fight)",
-            "Q to save and quit"
-    );
+            "Q to save and quit");
     private final Player player;
+    private final Map<String, BooleanSupplier> actions = new HashMap<>();
 
     public PlayerController(Player player) {
         this.player = player;
+        registerActions();
+    }
+
+    private void registerActions() {
+        registerAction("N", () -> execute(new MoveCommand(player, Direction.NORTH)));
+        registerAction("E", () -> execute(new MoveCommand(player, Direction.EAST)));
+        registerAction("S", () -> execute(new MoveCommand(player, Direction.SOUTH)));
+        registerAction("W", () -> execute(new MoveCommand(player, Direction.WEST)));
+        registerAction("I", () -> showInventory());
+        registerAction("P", () -> pickUpItem());
+        registerAction("D", () -> discardItem());
+        registerAction("L", () -> lookAround());
+        registerAction("M", () -> player.showMap());
+        registerAction("U", () -> undo());
+        registerAction("H", () -> printHelp());
+        registerAction("Q", () -> quit());
+    }
+
+    private void registerAction(String key, Runnable action) {
+        actions.put(key, () -> {
+            action.run();
+            return true;
+        });
+    }
+
+    private void registerAction(String key, BooleanSupplier action) {
+        actions.put(key, action);
     }
 
     public static void printHelp() {
@@ -60,51 +90,20 @@ public class PlayerController {
     }
 
     private boolean handle(String input) {
-        switch (input) {
-            case "N":
-                execute(new MoveCommand(player, Direction.NORTH));
-                break;
-            case "E":
-                execute(new MoveCommand(player, Direction.EAST));
-                break;
-            case "S":
-                execute(new MoveCommand(player, Direction.SOUTH));
-                break;
-            case "W":
-                execute(new MoveCommand(player, Direction.WEST));
-                break;
-            case "I":
-                PlayerView.showInventory(player);
-                PlayerView.showStats(player);
-                break;
-            case "P":
-                pickUpItem();
-                break;
-            case "D":
-                discardItem();
-                break;
-            case "L":
-                PlayerView.showItemsInRoom(player.getCurrentRoom());
-                break;
-            case "M":
-                player.showMap();
-                break;
-            case "U":
-                undo();
-                break;
-            case "H":
-                printHelp();
-                break;
-            case "Q":
-                if (SaveManager.save(player)) {
-                    Logic.printToUser("Game saved.");
-                    return false;
-                }
-                return !Console.confirm("Quit anyway? Progress since the last successful save is lost.");
-            default:
-                Logic.printToUser("Invalid input. Please enter N, E, S, W, I, P, D, L, M, U, H or Q.");
+        BooleanSupplier action = actions.get(input);
+        if (action == null) {
+            Logic.printToUser("Invalid input. Please enter N, E, S, W, I, P, D, L, M, U, H or Q.");
+            return true;
         }
-        return true;
+        return action.getAsBoolean();
+    }
+
+    private boolean quit() {
+        if (SaveManager.save(player)) {
+            Logic.printToUser("Game saved.");
+            return false;
+        }
+        return !Console.confirm("Quit anyway? Progress since the last successful save is lost.");
     }
 
     private void execute(Command command) {
@@ -122,6 +121,15 @@ public class PlayerController {
         }
         last.get().undo();
         SaveManager.save(player);
+    }
+
+    private void showInventory() {
+        PlayerView.showInventory(player);
+        PlayerView.showStats(player);
+    }
+
+    private void lookAround() {
+        PlayerView.showItemsInRoom(player.getCurrentRoom());
     }
 
     private void pickUpItem() {
