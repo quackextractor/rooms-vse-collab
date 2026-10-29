@@ -98,8 +98,9 @@ public class PlayerController {
             case "Q":
                 if (SaveManager.save(player)) {
                     Logic.printToUser("Game saved.");
+                    return false;
                 }
-                return false;
+                return !Console.confirm("Quit anyway? Progress since the last successful save is lost.");
             default:
                 Logic.printToUser("Invalid input. Please enter N, E, S, W, I, P, D, L, M, U, H or Q.");
         }

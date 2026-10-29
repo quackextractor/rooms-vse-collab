@@ -31,7 +31,8 @@ Items and fights
 ----------------
 
 Picking up an item adds its stats, discarding it takes them away again.
-Weapons add their damage to your strength when you attack.
+Items never take your health below 1. Weapons add their damage to your
+strength when you attack, and every attack does at least 1 damage.
 
 An enemy blocks the room until you fight it or back away. Whoever has more
 agility strikes first; on a tie the enemy does. Wounds last only for the
@@ -42,7 +43,9 @@ Saving
 ------
 
 1 starts a new game, 2 continues the saved one. The game saves to
-savegame.dat in this folder after every move. Winning deletes it.
+savegame.dat in this folder after every move. Winning deletes it. If a
+save fails, Q asks before quitting. A damaged save says so; start a new
+game to replace it. A saved game continues even if rooms.csv is missing.
 
 Controls
 --------

@@ -69,9 +69,41 @@ class MapLoaderTest {
 
     @Test
     void aRoomIdThatIsNotANumberIsRefused() {
-        assertRefused("Invalid map formatting at line 2",
-                "0,Start,-1,1,-1,-1,The start.",
+        assertRefused("line 2: Column id must be a whole number, not \"x1\"",
+                "0,Start,-1,1,-1,-1,The start.,,,,,,true",
                 "x1,Hall,-1,-1,-1,0,A hall.");
+    }
+
+    @Test
+    void blankLinesAreSkipped() throws Exception {
+        Map<Integer, Room> rooms = load("0,Start,-1,-1,-1,-1,The start.,,,,,,true", "", "  ");
+
+        assertEquals(1, rooms.size());
+    }
+
+    @Test
+    void aMisspelledTrueOrFalseIsRefused() {
+        assertRefused("Column isSecret must be true or false, not \"ture\"",
+                "0,Start,-1,-1,-1,-1,The start.,,,,,,true,You win!,ture");
+    }
+
+    @Test
+    void anUnknownStatIsRefused() {
+        assertRefused("Unknown stat \"Strength\"", "0,Start,-1,-1,-1,-1,The start.,Rock:Strength:5,,,,,true");
+    }
+
+    @Test
+    void aWinRoomNoExitLeadsToIsRefused() {
+        assertRefused("No path of exits leads from room 0 to a win room",
+                "0,Start,-1,-1,-1,-1,The start.",
+                "1,Exit,-1,-1,-1,0,The way out.,,,,,,true");
+    }
+
+    @Test
+    void aConditionNoItemsCanMeetIsRefused() {
+        assertRefused("Room 1 needs strength 30, but the items on the map raise it to at most 15",
+                "0,Start,-1,1,-1,-1,The start.,Rock:strength:5",
+                "1,Exit,-1,-1,-1,0,The way out.,,,,,strength:30:Too heavy.,true");
     }
 
     @Test

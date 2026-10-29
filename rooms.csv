@@ -5,7 +5,7 @@
 4,L3,-1,-1,5,3,You arrive at the dining room, the smell of rotten food disgusts you.,Axe:strength:7;Map:wisdom:5,Ghost:40:6:7,,,,,,false
 5,Crossroads,4,6,10,101,You stand at a crossroads, paths leading to various parts of the castle.,,Spider:50:9:4,,,,,,false
 6,Judgment Hall,-1,7,-1,5,You enter a vast hall with a high ceiling, rows of empty benches lining the walls.,Bow:strength:6;Arrows:strength:4,Horseless Headless Knight:30:10:3,,,,,,false
-7,Large Flooded Room,-1,11,-1,6,You find yourself in a large room, the floor covered in ankle-deep water.,,Siren King:100:25:5,,,,,,false
+7,Large Flooded Room,-1,11,-1,6,You find yourself in a large room, the floor covered in ankle-deep water.,,Siren King:90:25:5,,,,,,false
 8,R1,1,9,-1,-1,You step into a small chamber, its walls adorned with intricate carvings and faded murals.,,Imp:30:10:9;Imp Assistant:15:5:30,,,,,,false
 9,R2,-1,10,-1,8,You enter a room filled with shelves containing dusty tomes and ancient artifacts.,,Rat:5:3:25;Rat:5:3:25;Rat:5:3:25;Rat:5:3:25;Rat:5:3:25;Rat:5:3:25;Rat:5:3:25;Rat:5:3:25;Rat:5:3:25;Fat Rat:20:10:0,You hear the furious squeaks of hundreds of rats,,,,,false
 10,R3,5,-1,-1,9,You find yourself in a room with a large pedestal in the center, upon which rests a mysterious artifact.,,Dragon:100:12:8,The ground shakes as you hear a stunning roar.,,,,,false

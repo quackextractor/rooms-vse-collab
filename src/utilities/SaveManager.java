@@ -8,12 +8,13 @@ import java.io.InvalidClassException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 
 public class SaveManager {
-    private static Path saveFile = Path.of("savegame.dat");
+    private static Path saveFile = Path.of(Config.SAVE_FILE);
 
     private SaveManager() {
     }
@@ -33,11 +34,20 @@ public class SaveManager {
                  ObjectOutputStream out = new ObjectOutputStream(file)) {
                 out.writeObject(player);
             }
-            Files.move(draft, saveFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            moveIntoPlace(draft);
             return true;
-        } catch (Exception e) {
-            Logic.printToUser("Could not save the game: " + e.getMessage());
+        } catch (IOException | RuntimeException e) {
+            draft.toFile().delete();
+            Logic.printToUser("Could not save the game to " + saveFile.toAbsolutePath() + " (" + reason(e) + ").");
             return false;
+        }
+    }
+
+    private static void moveIntoPlace(Path draft) throws IOException {
+        try {
+            Files.move(draft, saveFile, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (AtomicMoveNotSupportedException e) {
+            Files.move(draft, saveFile, StandardCopyOption.REPLACE_EXISTING);
         }
     }
 
@@ -46,9 +56,11 @@ public class SaveManager {
              ObjectInputStream in = new ObjectInputStream(file)) {
             return (Player) in.readObject();
         } catch (InvalidClassException | ClassNotFoundException | ClassCastException e) {
-            Logic.printToUser("The saved game is from another version of Rooms and cannot be loaded. Start a new game.");
-        } catch (IOException e) {
-            Logic.printToUser("Could not read the saved game: " + e);
+            Logic.printToUser("The saved game is from another version of Rooms and cannot be loaded."
+                    + " Start a new game to replace it.");
+        } catch (IOException | RuntimeException e) {
+            Logic.printToUser("The saved game is damaged and cannot be loaded (" + reason(e) + ")."
+                    + " Start a new game to replace it.");
         }
         return null;
     }
@@ -57,7 +69,11 @@ public class SaveManager {
         try {
             Files.deleteIfExists(saveFile);
         } catch (IOException e) {
-            Logic.printToUser("Could not delete the saved game: " + e.getMessage());
+            Logic.printToUser("Could not delete the saved game (" + reason(e) + ").");
         }
+    }
+
+    private static String reason(Exception e) {
+        return e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
     }
 }

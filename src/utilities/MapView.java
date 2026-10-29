@@ -95,7 +95,7 @@ public class MapView {
             Room room = roomMap.get(roomId);
             for (Direction direction : Direction.values()) {
                 int neighbourId = room.getExit(direction);
-                if (neighbourId == -1 || positions.containsKey(neighbourId) || !roomMap.containsKey(neighbourId)) {
+                if (neighbourId == Config.WALL ||positions.containsKey(neighbourId) || !roomMap.containsKey(neighbourId)) {
                     continue;
                 }
                 positions.put(neighbourId, new int[]{

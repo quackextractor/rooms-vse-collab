@@ -90,6 +90,16 @@ class CombatTest {
     }
 
     @Test
+    void aPlayerAlwaysDealsAtLeastOneDamage() throws Exception {
+        GameSession game = nextToTheArena();
+        game.player().setStatValue("strength", -50);
+
+        game.play("N", "Y");
+
+        assertTrue(game.printed("You attack Goblin for 1 damage."));
+    }
+
+    @Test
     void anEnemyIsDescribedByItsStats() {
         Enemy ghost = new Enemy("Ghost", 40, 6, 7);
 

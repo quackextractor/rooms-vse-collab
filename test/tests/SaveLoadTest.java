@@ -65,6 +65,17 @@ class SaveLoadTest {
             System.setOut(screen);
         }
 
-        assertTrue(output.toString().contains("Could not read the saved game"));
+        assertTrue(output.toString().contains("The saved game is damaged and cannot be loaded"));
+    }
+
+    @Test
+    void quittingWhenTheSaveFailsAsksFirst() throws Exception {
+        GameSession game = new GameSession();
+        SaveManager.useFile(GameSession.SAVE_FILE.resolveSibling("no-such-folder").resolve("save.dat"));
+
+        game.play("Q", "N", "L");
+
+        assertTrue(game.printed("Quit anyway? Progress since the last successful save is lost. [Y/N]"));
+        assertTrue(game.printed("Items in the current room:"));
     }
 }

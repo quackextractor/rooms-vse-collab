@@ -6,6 +6,7 @@ import items.Weapon;
 import room.Direction;
 import room.Room;
 import room.RoomCondition;
+import utilities.Config;
 import utilities.Logic;
 import utilities.MapView;
 
@@ -27,10 +28,9 @@ public class Player implements Serializable {
         this.roomMap = Objects.requireNonNull(roomMap, "roomMap");
         this.discoveredRoomIds.add(initialRoom.getId());
 
-        stats.put("strength", 10);
-        stats.put("wisdom", 10);
-        stats.put("agility", 10);
-        stats.put("health", 10);
+        for (String stat : Config.STATS) {
+            stats.put(stat, Config.STARTING_STAT_VALUE);
+        }
     }
 
     public List<Item> getInventoryItems() {
@@ -56,7 +56,7 @@ public class Player implements Serializable {
         if (stat == null || stat.isBlank()) {
             throw new IllegalArgumentException("Stat name must not be blank.");
         }
-        stats.put(stat, stat.equals("health") ? Math.max(0, value) : value);
+        stats.put(stat, stat.equals(Config.HEALTH) ? Math.max(0, value) : value);
     }
 
     public Room getCurrentRoom() {
@@ -83,7 +83,7 @@ public class Player implements Serializable {
         }
         drop(item, currentRoom.getAvailableItems().size());
         for (Map.Entry<String, Integer> bonus : item.getStats().entrySet()) {
-            changeStat(bonus.getKey(), -lossOnDiscard(bonus.getKey(), bonus.getValue()));
+            changeStat(bonus.getKey(), -bonus.getValue());
         }
         Logic.printToUser("Discarded " + item.getName() + ".");
         return true;
@@ -119,25 +119,23 @@ public class Player implements Serializable {
         }
     }
 
-    private int lossOnDiscard(String stat, int bonus) {
-        if (stat.equals("health")) {
-            return Math.min(bonus, getStatValue("health") - 1);
-        }
-        return bonus;
-    }
-
     private void changeStat(String statName, int value) {
-        if (value == 0) {
+        int oldValue = getStatValue(statName);
+        int newValue = oldValue + value;
+        if (statName.equals(Config.HEALTH)) {
+            newValue = Math.max(Config.MIN_HEALTH, newValue);
+        }
+        if (newValue == oldValue) {
             return;
         }
-        setStatValue(statName, getStatValue(statName) + value);
-        String direction = value > 0 ? "increased" : "decreased";
+        setStatValue(statName, newValue);
+        String direction = newValue > oldValue ? "increased" : "decreased";
         Logic.printToUser("Your " + statName + " has " + direction + " to " + getStatValue(statName) + ".");
     }
 
     public boolean move(Direction direction) {
         int roomId = currentRoom.getExit(direction);
-        if (roomId == -1) {
+        if (roomId == Config.WALL) {
             Logic.printToUser("You cannot move in that direction from " + currentRoom.getName());
             return false;
         }

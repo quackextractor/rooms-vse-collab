@@ -105,6 +105,15 @@ class InventoryTest {
     }
 
     @Test
+    void pickingUpAHarmfulItemLeavesAtLeastOneHealth() throws Exception {
+        GameSession game = new GameSession(9);
+
+        game.play("P", "Thorn");
+
+        assertEquals(1, game.stat("health"));
+    }
+
+    @Test
     void healthNeverDropsBelowZero() throws Exception {
         GameSession game = new GameSession();
 

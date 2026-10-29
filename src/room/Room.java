@@ -4,6 +4,7 @@ import enemy.Enemy;
 import items.Item;
 import items.Weapon;
 import player.Player;
+import utilities.Config;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -54,8 +55,8 @@ public class Room implements Serializable {
     }
 
     private int checkExit(int roomId) {
-        if (roomId < -1) {
-            throw new IllegalArgumentException("Room " + id + " has an exit to " + roomId + ". Use -1 for a wall.");
+        if (roomId < Config.WALL) {
+            throw new IllegalArgumentException("Room " + id + " has an exit to " + roomId + ". Use " + Config.WALL + " for a wall.");
         }
         return roomId;
     }
