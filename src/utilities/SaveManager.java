@@ -74,6 +74,7 @@ public class SaveManager {
     }
 
     private static String reason(Exception e) {
-        return e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage();
+        String type = e.getClass().getSimpleName();
+        return e.getMessage() == null ? type : type + ": " + e.getMessage();
     }
 }

@@ -1,10 +1,12 @@
 package tests;
 
 import init.Menu;
+import myExceptions.InputEndedException;
 import org.junit.jupiter.api.Test;
 import utilities.Console;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class MenuTest {
 
@@ -25,6 +27,13 @@ class MenuTest {
         assertEquals(Menu.Action.NEW_GAME, choose("new game"));
         assertEquals(Menu.Action.CONTINUE, choose("c"));
         assertEquals(Menu.Action.EXIT, choose("q"));
+    }
+
+    @Test
+    void inputThatEndsMidPromptEndsTheGameWithoutExitingTheProgram() {
+        Console.useInput("");
+
+        assertThrows(InputEndedException.class, () -> new Menu().promptChoice());
     }
 
     @Test

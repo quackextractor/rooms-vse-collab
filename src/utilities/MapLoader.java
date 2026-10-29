@@ -1,5 +1,6 @@
 package utilities;
 
+import enemy.Combat;
 import enemy.Enemy;
 import items.Item;
 import items.Weapon;
@@ -50,7 +51,7 @@ public class MapLoader {
         }
 
         validateLinks(roomMap);
-        validateConditions(roomMap);
+        validateEveryRoomCanBeEntered(roomMap);
         return roomMap;
     }
 
@@ -60,6 +61,10 @@ public class MapLoader {
         if (parts.length < Config.MANDATORY_COLUMNS) {
             throw new ParsingLevelException("Invalid format in the map file, the first " + Config.MANDATORY_COLUMNS
                     + " columns are mandatory (roomID, room name and the 4 neighboring rooms).");
+        }
+        if (parts.length > Column.values().length) {
+            throw new ParsingLevelException("The line has " + parts.length + " columns, but a room has at most "
+                    + Column.values().length + ". A comma with no space after it splits a column in two.");
         }
 
         int id = number(parts, Column.ID);
@@ -191,25 +196,63 @@ public class MapLoader {
         return reached;
     }
 
-    private static void validateConditions(Map<Integer, Room> roomMap) throws ParsingLevelException {
-        for (Room room : roomMap.values()) {
-            for (RoomCondition condition : room.getConditions()) {
-                int highest = highestPossible(roomMap, condition.getStat());
-                if (condition.getMinValue() > highest) {
-                    throw new ParsingLevelException("Room " + room.getId() + " needs " + condition.getStat() + " "
-                            + condition.getMinValue() + ", but the items on the map raise it to at most " + highest + ".");
+    private static void validateEveryRoomCanBeEntered(Map<Integer, Room> roomMap) throws ParsingLevelException {
+        Set<Integer> entered = new HashSet<>(List.of(Config.START_ROOM_ID));
+        boolean progress = true;
+        while (progress) {
+            progress = false;
+            List<Item> items = itemsIn(roomMap, entered);
+            for (Room room : frontier(roomMap, entered)) {
+                if (whyBlocked(room, items).isEmpty()) {
+                    entered.add(room.getId());
+                    progress = true;
                 }
             }
         }
+        Optional<Room> blocked = frontier(roomMap, entered).stream().findFirst();
+        if (blocked.isPresent()) {
+            throw new ParsingLevelException(whyBlocked(blocked.get(), itemsIn(roomMap, entered)).orElseThrow());
+        }
     }
 
-    private static int highestPossible(Map<Integer, Room> roomMap, String stat) {
-        int highest = Config.STARTING_STAT_VALUE;
-        for (Room room : roomMap.values()) {
-            for (Item item : room.getAvailableItems()) {
-                highest += Math.max(0, item.getStats().getOrDefault(stat, 0));
+    private static List<Room> frontier(Map<Integer, Room> roomMap, Set<Integer> entered) {
+        return entered.stream()
+                .map(roomMap::get)
+                .flatMap(room -> Arrays.stream(Direction.values()).map(room::getExit))
+                .filter(exit -> exit != Config.WALL && !entered.contains(exit))
+                .distinct()
+                .sorted()
+                .map(roomMap::get)
+                .toList();
+    }
+
+    private static List<Item> itemsIn(Map<Integer, Room> roomMap, Set<Integer> roomIds) {
+        return roomIds.stream().flatMap(id -> roomMap.get(id).getAvailableItems().stream()).toList();
+    }
+
+    private static Optional<String> whyBlocked(Room room, List<Item> items) {
+        String reachable = "the items the player can reach before it raise ";
+        for (RoomCondition condition : room.getConditions()) {
+            int highest = highestPossible(items, condition.getStat());
+            if (condition.getMinValue() > highest) {
+                return Optional.of("Room " + room.getId() + " needs " + condition.getStat() + " " + condition.getMinValue()
+                        + ", but " + reachable + "it to at most " + highest + ".");
             }
         }
-        return highest;
+        List<Weapon> weapons = items.stream().filter(Weapon.class::isInstance).map(Weapon.class::cast).toList();
+        int damage = Combat.damage(highestPossible(items, Config.STRENGTH), weapons);
+        int health = highestPossible(items, Config.HEALTH);
+        for (Enemy enemy : room.getAvailableEnemies()) {
+            long damageTaken = enemy.damageBeforeFalling(damage, highestPossible(items, Config.AGILITY));
+            if (damageTaken >= health) {
+                return Optional.of("Room " + room.getId() + " cannot be won: " + enemy.getName() + " deals " + damageTaken
+                        + " damage before it falls, but " + reachable + "health to at most " + health + ".");
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static int highestPossible(List<Item> items, String stat) {
+        return Config.STARTING_STAT_VALUE + items.stream().mapToInt(item -> Math.max(0, item.getStats().getOrDefault(stat, 0))).sum();
     }
 }

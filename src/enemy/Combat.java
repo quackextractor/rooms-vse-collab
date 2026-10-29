@@ -32,51 +32,52 @@ public class Combat {
         }
 
         int maxHealth = player.getStatValue(Config.HEALTH);
+        int health = maxHealth;
         while (!enemies.isEmpty()) {
             Enemy enemy = enemies.get(0);
-            fight(player, enemy);
+            health = fight(player, enemy, health);
             if (enemy.getHealth() > 0) {
-                lose(player, enemy, maxHealth);
+                lose(player, enemy, health, maxHealth);
                 return;
             }
             Logic.printToUser("You have successfully defeated " + enemy.getName() + "!");
             enemies.remove(enemy);
         }
-        recover(player, maxHealth, "Victory swiftly mended any injuries sustained in the heat of combat.");
+        recover(health, maxHealth, "Victory swiftly mended any injuries sustained in the heat of combat.");
     }
 
-    private static void lose(Player player, Enemy enemy, int maxHealth) {
+    private static void lose(Player player, Enemy enemy, int health, int maxHealth) {
         Logic.printToUser("You were beat by " + enemy.getName() + "!");
         enemy.heal();
         Logic.printToUser("You stumble back into the last room.");
         player.retreat();
-        recover(player, maxHealth, "You catch your breath and your wounds close.");
+        recover(health, maxHealth, "You catch your breath and your wounds close.");
     }
 
-    private static void recover(Player player, int maxHealth, String message) {
-        Logic.printToUser(message + " (" + player.getStatValue(Config.HEALTH) + " -> " + maxHealth + ")");
-        player.setStatValue(Config.HEALTH, maxHealth);
+    private static void recover(int health, int maxHealth, String message) {
+        Logic.printToUser(message + " (" + health + " -> " + maxHealth + ")");
     }
 
-    private static void fight(Player player, Enemy enemy) {
-        boolean isPlayerTurn = player.getStatValue(Config.AGILITY) > enemy.getAgility();
-        while (enemy.getHealth() > 0 && player.getStatValue(Config.HEALTH) > 0) {
+    private static int fight(Player player, Enemy enemy, int health) {
+        boolean isPlayerTurn = !enemy.strikesFirstAgainst(player.getStatValue(Config.AGILITY));
+        while (enemy.getHealth() > 0 && health > 0) {
             if (isPlayerTurn) {
-                int damage = damageOf(player);
+                int damage = damage(player.getStatValue(Config.STRENGTH), player.getInventoryWeapons());
                 Logic.printToUser("You attack " + enemy.getName() + " for " + damage + " damage.");
                 enemy.setHealth(enemy.getHealth() - damage);
             } else {
                 Logic.printToUser("The " + enemy.getName() + " hits you for " + enemy.getStrength() + " damage.");
-                player.setStatValue(Config.HEALTH, player.getStatValue(Config.HEALTH) - enemy.getStrength());
+                health = Math.max(0, health - enemy.getStrength());
             }
-            Logic.printToUser("(" + player.getStatValue(Config.HEALTH) + "|" + enemy.getHealth() + ")");
+            Logic.printToUser("(" + health + "|" + enemy.getHealth() + ")");
             isPlayerTurn = !isPlayerTurn;
         }
+        return health;
     }
 
-    private static int damageOf(Player player) {
-        int damage = player.getStatValue(Config.STRENGTH);
-        for (Weapon weapon : player.getInventoryWeapons()) {
+    public static int damage(int strength, List<Weapon> weapons) {
+        int damage = strength;
+        for (Weapon weapon : weapons) {
             damage += weapon.getDamage();
         }
         return Math.max(Config.MIN_DAMAGE, damage);

@@ -114,11 +114,20 @@ class InventoryTest {
     }
 
     @Test
-    void healthNeverDropsBelowZero() throws Exception {
+    void discardingAHarmfulItemGivesBackOnlyWhatItTook() throws Exception {
+        GameSession game = new GameSession(9);
+
+        game.play("P", "Thorn", "D", "Thorn");
+
+        assertEquals(10, game.stat("health"));
+    }
+
+    @Test
+    void healthNeverReadsBelowOne() throws Exception {
         GameSession game = new GameSession();
 
         game.player().setStatValue("health", -5);
 
-        assertEquals(0, game.stat("health"));
+        assertEquals(1, game.stat("health"));
     }
 }

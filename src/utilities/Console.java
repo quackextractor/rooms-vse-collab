@@ -1,5 +1,7 @@
 package utilities;
 
+import myExceptions.InputEndedException;
+
 import java.util.Scanner;
 
 public class Console {
@@ -18,9 +20,8 @@ public class Console {
 
     public static String readLine() {
         if (!hasInput()) {
-            Logic.printToUser("Input ended. This game needs a terminal: double-click play.cmd on Windows,"
+            throw new InputEndedException("Input ended. This game needs a terminal: double-click play.cmd on Windows,"
                     + " or run java -jar rooms.jar from one.");
-            System.exit(0);
         }
         return scanner.nextLine();
     }

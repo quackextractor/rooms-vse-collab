@@ -47,6 +47,16 @@ public class Enemy implements Serializable {
         health = maxHealth;
     }
 
+    public boolean strikesFirstAgainst(int playerAgility) {
+        return agility >= playerAgility;
+    }
+
+    public long damageBeforeFalling(int playerDamage, int playerAgility) {
+        int hitsToFall = (maxHealth - 1) / playerDamage + 1;
+        int hitsDealt = strikesFirstAgainst(playerAgility) ? hitsToFall : hitsToFall - 1;
+        return (long) hitsDealt * strength;
+    }
+
     public int getStrength() {
         return strength;
     }

@@ -5,7 +5,6 @@ import room.Room;
 import utilities.Logic;
 
 import java.util.List;
-import java.util.Map;
 
 public class PlayerView {
     private PlayerView() {
@@ -13,10 +12,9 @@ public class PlayerView {
 
     public static void showStats(Player player) {
         Logic.printToUser("Stats:");
-        for (Map.Entry<String, Integer> stat : player.getStats().entrySet()) {
-            String name = stat.getKey();
+        for (String name : player.getStats().keySet()) {
             String capitalised = name.substring(0, 1).toUpperCase() + name.substring(1);
-            Logic.printToUser("  " + capitalised + " " + stat.getValue());
+            Logic.printToUser("  " + capitalised + " " + player.getStatValue(name));
         }
     }
 

@@ -51,7 +51,7 @@ class MapLoaderTest {
     @Test
     void severalEnemiesCanShareARoom() throws Exception {
         Map<Integer, Room> rooms = load("0,Start,1,-1,-1,-1,The start.,,,,,,true",
-                "1,Nest,-1,-1,0,-1,Rats.,,Rat:5:3:25;Rat:5:3:25;Fat Rat:20:10:0");
+                "1,Nest,-1,-1,0,-1,Rats.,,Rat:5:3:25;Rat:5:3:25;Fat Rat:20:9:0");
 
         assertEquals(3, rooms.get(1).getAvailableEnemies().size());
     }
@@ -101,6 +101,12 @@ class MapLoaderTest {
     }
 
     @Test
+    void aColumnPastIsSecretIsRefused() {
+        assertRefused("line 1: The line has 16 columns, but a room has at most 15",
+                "0,Start,-1,-1,-1,-1,The start.,,,,,,true,You win!,false,oops");
+    }
+
+    @Test
     void anUnknownStatIsRefused() {
         assertRefused("Unknown stat \"Strength\"", "0,Start,-1,-1,-1,-1,The start.,Rock:Strength:5,,,,,true");
     }
@@ -114,9 +120,32 @@ class MapLoaderTest {
 
     @Test
     void aConditionNoItemsCanMeetIsRefused() {
-        assertRefused("Room 1 needs strength 30, but the items on the map raise it to at most 15",
+        assertRefused("Room 1 needs strength 30, but the items the player can reach before it raise it to at most 15",
                 "0,Start,-1,1,-1,-1,The start.,Rock:strength:5",
                 "1,Exit,-1,-1,-1,0,The way out.,,,,,strength:30:Too heavy.,true");
+    }
+
+    @Test
+    void aConditionMetOnlyByItemsBehindItIsRefused() {
+        assertRefused("Room 1 needs strength 30, but the items the player can reach before it raise it to at most 10",
+                "0,Start,-1,1,-1,-1,The start.",
+                "1,Exit,-1,-1,-1,0,The way out.,Gauntlets:strength:20,,,,strength:30:Too heavy.,true");
+    }
+
+    @Test
+    void anEnemyNoReachableItemsCanBeatIsRefused() {
+        assertRefused("Room 1 cannot be won: Troll deals 30 damage before it falls, but the items the player can reach before it raise health to at most 15",
+                "0,Start,-1,1,-1,-1,The start.,Shield:health:5",
+                "1,Cave,-1,2,-1,0,A cave.,,Troll:30:10:20",
+                "2,Exit,-1,-1,-1,1,The way out.,,,,,,true");
+    }
+
+    @Test
+    void anOptionalRoomThatCanNeverBeEnteredIsRefused() {
+        assertRefused("Room 2 needs wisdom 52, but the items the player can reach before it raise it to at most 50",
+                "0,Start,2,1,-1,-1,The start.,Scroll:wisdom:40",
+                "1,Exit,-1,-1,-1,0,The way out.,,,,,,true",
+                "2,Vault,-1,-1,0,-1,A vault.,Key:wisdom:5,,,,wisdom:52:Locked.");
     }
 
     @Test

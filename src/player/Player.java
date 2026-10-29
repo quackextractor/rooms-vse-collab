@@ -49,14 +49,15 @@ public class Player implements Serializable {
     }
 
     public int getStatValue(String stat) {
-        return stats.getOrDefault(stat, 0);
+        int value = stats.getOrDefault(stat, 0);
+        return stat.equals(Config.HEALTH) ? Math.max(Config.MIN_HEALTH, value) : value;
     }
 
     public void setStatValue(String stat, int value) {
         if (stat == null || stat.isBlank()) {
             throw new IllegalArgumentException("Stat name must not be blank.");
         }
-        stats.put(stat, stat.equals(Config.HEALTH) ? Math.max(0, value) : value);
+        stats.put(stat, value);
     }
 
     public Room getCurrentRoom() {
@@ -115,22 +116,18 @@ public class Player implements Serializable {
         Set<String> names = new LinkedHashSet<>(stats.keySet());
         names.addAll(statsBefore.keySet());
         for (String name : names) {
-            changeStat(name, statsBefore.getOrDefault(name, 0) - getStatValue(name));
+            changeStat(name, statsBefore.getOrDefault(name, 0) - stats.getOrDefault(name, 0));
         }
     }
 
     private void changeStat(String statName, int value) {
         int oldValue = getStatValue(statName);
-        int newValue = oldValue + value;
-        if (statName.equals(Config.HEALTH)) {
-            newValue = Math.max(Config.MIN_HEALTH, newValue);
+        stats.merge(statName, value, Integer::sum);
+        int newValue = getStatValue(statName);
+        if (newValue != oldValue) {
+            String direction = newValue > oldValue ? "increased" : "decreased";
+            Logic.printToUser("Your " + statName + " has " + direction + " to " + newValue + ".");
         }
-        if (newValue == oldValue) {
-            return;
-        }
-        setStatValue(statName, newValue);
-        String direction = newValue > oldValue ? "increased" : "decreased";
-        Logic.printToUser("Your " + statName + " has " + direction + " to " + getStatValue(statName) + ".");
     }
 
     public boolean move(Direction direction) {
