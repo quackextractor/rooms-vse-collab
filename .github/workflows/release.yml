@@ -19,12 +19,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '24'
+          cache: maven
 
-      - name: Compile
-        run: sh scripts/build.sh
-
-      - name: Test
-        run: sh scripts/test.sh
+      - name: Build and test
+        run: sh ./mvnw -B -ntp verify
 
   release:
     needs: gate
@@ -39,12 +37,10 @@ jobs:
         with:
           distribution: temurin
           java-version: '24'
+          cache: maven
 
       - name: Build and package
-        run: |
-          sh scripts/build.sh
-          sh scripts/test.sh
-          sh scripts/package.sh
+        run: sh ./mvnw -B -ntp verify
 
       - name: Name the release after the commit
         id: tag
@@ -72,6 +68,6 @@ jobs:
             --title "Rooms $tag" \
             --generate-notes \
             --verify-tag \
-            "out/dist/rooms.zip"
+            "target/rooms.zip"
 
-          echo "[OK] released $tag with out/dist/rooms.zip attached."
+          echo "[OK] released $tag with target/rooms.zip attached."
