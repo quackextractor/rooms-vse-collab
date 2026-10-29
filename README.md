@@ -42,6 +42,6 @@ Maven, through the wrapper, so only a JDK 17+ is needed (`mvnw.cmd` on Windows w
 - `sh mvnw test` compiles and runs the JUnit tests.
 - `sh mvnw package` also builds `target/rooms.jar` and the release zip `target/rooms.zip`.
 
-IntelliJ opens the project from `pom.xml`. Run `install-hooks.ps1` once per clone.
+IntelliJ opens the project from `pom.xml`.
 
 MIT licensed.
