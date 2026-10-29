@@ -48,26 +48,23 @@ class CombatTest {
     }
 
     @Test
-    void losingAFightSendsThePlayerBackWithHalfTheirHealth() throws Exception {
+    void losingAFightSendsThePlayerBackHealed() throws Exception {
         GameSession game = nextToTheArena();
 
         game.play("N", "Y");
 
         assertTrue(game.printed("You were beat by Goblin!"));
         assertEquals("Library", game.currentRoom());
-        assertEquals(5, game.stat("health"));
-        assertEquals(10, goblin(game).getHealth());
+        assertEquals(10, game.stat("health"));
     }
 
     @Test
-    void losingAFightNeverKills() throws Exception {
+    void theEnemyThatWinsHealsToo() throws Exception {
         GameSession game = nextToTheArena();
-        game.player().setStatValue("health", 1);
 
         game.play("N", "Y");
 
-        assertEquals("Library", game.currentRoom());
-        assertEquals(1, game.stat("health"));
+        assertEquals(30, goblin(game).getHealth());
     }
 
     @Test
@@ -90,16 +87,6 @@ class CombatTest {
         game.play("N", "Y");
 
         assertTrue(game.printed("Do you wish to proceed? [Y/N]", "You attack Goblin for 10 damage.", "(10|20)"));
-    }
-
-    @Test
-    void aPlayerWithNoHealthDiesEvenFacingAnEnemy() throws Exception {
-        GameSession game = new GameSession(2);
-        game.player().setStatValue("health", 0);
-
-        game.play("Y");
-
-        assertTrue(game.printed("You died."));
     }
 
     @Test

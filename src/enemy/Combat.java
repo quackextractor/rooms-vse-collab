@@ -28,29 +28,31 @@ public class Combat {
             return;
         }
 
-        int initialHealth = player.getStatValue("health");
+        int maxHealth = player.getStatValue("health");
         while (!enemies.isEmpty()) {
             Enemy enemy = enemies.get(0);
             fight(player, enemy);
             if (enemy.getHealth() > 0) {
-                lose(player, enemy, initialHealth);
+                lose(player, enemy, maxHealth);
                 return;
             }
             Logic.printToUser("You have successfully defeated " + enemy.getName() + "!");
             enemies.remove(enemy);
         }
-        Logic.printToUser("Victory swiftly mended any injuries sustained in the heat of combat. "
-                + "(" + player.getStatValue("health") + " -> " + initialHealth + ")");
-        player.setStatValue("health", initialHealth);
+        recover(player, maxHealth, "Victory swiftly mended any injuries sustained in the heat of combat.");
     }
 
-    private static void lose(Player player, Enemy enemy, int initialHealth) {
+    private static void lose(Player player, Enemy enemy, int maxHealth) {
         Logic.printToUser("You were beat by " + enemy.getName() + "!");
+        enemy.heal();
         Logic.printToUser("You stumble back into the last room.");
         player.retreat();
-        int woundedHealth = Math.max(1, initialHealth / 2);
-        Logic.printToUser("Defeat left you wounded. (" + initialHealth + " -> " + woundedHealth + ")");
-        player.setStatValue("health", woundedHealth);
+        recover(player, maxHealth, "You catch your breath and your wounds close.");
+    }
+
+    private static void recover(Player player, int maxHealth, String message) {
+        Logic.printToUser(message + " (" + player.getStatValue("health") + " -> " + maxHealth + ")");
+        player.setStatValue("health", maxHealth);
     }
 
     private static void fight(Player player, Enemy enemy) {

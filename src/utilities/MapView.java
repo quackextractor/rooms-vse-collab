@@ -22,7 +22,7 @@ public class MapView {
 
         for (Room room : roomMap.values()) {
             int[] position = positions.get(room.getId());
-            String label = position == null ? null : labelFor(room, discoveredRoomIds, currentRoomId);
+            String label = position == null ? null : labelFor(room, roomMap, discoveredRoomIds, currentRoomId);
             if (label == null) {
                 continue;
             }
@@ -53,7 +53,7 @@ public class MapView {
         }
     }
 
-    private static String labelFor(Room room, Set<Integer> discoveredRoomIds, int currentRoomId) {
+    private static String labelFor(Room room, Map<Integer, Room> roomMap, Set<Integer> discoveredRoomIds, int currentRoomId) {
         String id = String.valueOf(room.getId());
         if (discoveredRoomIds.contains(room.getId())) {
             if (room.getId() == currentRoomId) {
@@ -61,17 +61,18 @@ public class MapView {
             }
             return rightAlign(id, LABEL_WIDTH);
         }
-        if (!room.isSecret() && hasDiscoveredNeighbour(room, discoveredRoomIds)) {
+        if (!room.isSecret() && isExitOfDiscoveredRoom(room, roomMap, discoveredRoomIds)) {
             return rightAlign("?", LABEL_WIDTH);
         }
         return null;
     }
 
-    private static boolean hasDiscoveredNeighbour(Room room, Set<Integer> discoveredRoomIds) {
-        for (Direction direction : Direction.values()) {
-            int neighbourId = room.getExit(direction);
-            if (neighbourId != -1 && discoveredRoomIds.contains(neighbourId)) {
-                return true;
+    private static boolean isExitOfDiscoveredRoom(Room room, Map<Integer, Room> roomMap, Set<Integer> discoveredRoomIds) {
+        for (int discoveredId : discoveredRoomIds) {
+            for (Direction direction : Direction.values()) {
+                if (roomMap.get(discoveredId).getExit(direction) == room.getId()) {
+                    return true;
+                }
             }
         }
         return false;

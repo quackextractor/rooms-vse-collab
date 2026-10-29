@@ -3,8 +3,9 @@ package enemy;
 import java.io.Serializable;
 
 public class Enemy implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
     private final String name;
+    private final int maxHealth;
     private int health;
     private final int strength;
     private final int agility;
@@ -17,6 +18,7 @@ public class Enemy implements Serializable {
             throw new IllegalArgumentException("Enemy " + name + " needs health above 0 and non-negative strength and agility.");
         }
         this.name = name;
+        this.maxHealth = health;
         this.health = health;
         this.strength = strength;
         this.agility = agility;
@@ -39,6 +41,10 @@ public class Enemy implements Serializable {
 
     public void setHealth(int health) {
         this.health = Math.max(0, health);
+    }
+
+    public void heal() {
+        health = maxHealth;
     }
 
     public int getStrength() {

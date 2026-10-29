@@ -34,16 +34,15 @@ Picking up an item adds its stats, discarding it takes them away again.
 Weapons add their damage to your strength when you attack.
 
 An enemy blocks the room until you fight it or back away. Whoever has more
-agility strikes first; on a tie the enemy does. Win and your health is
-restored to what it was before the fight; lose and you are
-pushed back to the previous room with half your health. Reach 0 health and
-the game is over.
+agility strikes first; on a tie the enemy does. Wounds last only for the
+fight: win or lose, your health is restored afterwards. Lose and you are
+pushed back to the previous room, and the enemy that beat you recovers too.
 
 Saving
 ------
 
 1 starts a new game, 2 continues the saved one. The game saves to
-savegame.dat in this folder after every move. Winning or dying deletes it.
+savegame.dat in this folder after every move. Winning deletes it.
 
 Controls
 --------

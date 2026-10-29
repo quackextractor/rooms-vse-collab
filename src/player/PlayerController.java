@@ -41,9 +41,6 @@ public class PlayerController {
 
     public boolean playTurn() {
         Room room = player.getCurrentRoom();
-        if (player.getStatValue("health") <= 0) {
-            return endGame("You died.");
-        }
         if (room.isWinRoom()) {
             return endGame(room.getWinMessage());
         }

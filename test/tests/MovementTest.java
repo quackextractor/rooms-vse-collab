@@ -61,6 +61,15 @@ class MovementTest {
     }
 
     @Test
+    void theMapShowsAnExitIntoARoomWithNoWayBack() throws Exception {
+        GameSession game = new GameSession();
+
+        game.play("P", "Book", "E");
+
+        assertTrue(game.printed("[   0][*  1][   ?]"));
+    }
+
+    @Test
     void aSecretRoomStaysOffTheMapUntilThePlayerEntersIt() throws Exception {
         GameSession game = new GameSession();
 

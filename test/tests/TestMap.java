@@ -10,7 +10,7 @@ public class TestMap {
             "0,Start,9,1,-1,-1,You are at the start.,Book:wisdom:10",
             "1,Library,2,5,-1,0,Shelves full of books.,Potion:health:30,,,Sword:10:strength:5,wisdom:15:The door is locked.",
             "2,Arena,-1,-1,1,-1,Sand and blood.,Gauntlets:strength:15,Goblin:30:6:5,A goblin blocks the way.",
-            "5,Exit,-1,-1,-1,1,The way out.,,,,,strength:30:The gate is too heavy.,true,You win!",
+            "5,Exit,-1,-1,-1,-1,The way out.,,,,,strength:30:The gate is too heavy.,true,You win!",
             "9,Secret Room,-1,-1,0,-1,Nobody knows this room.,Stone:agility:-5,,,,,false,,true"
     );
 
