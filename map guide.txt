@@ -19,8 +19,9 @@ The isSecret column is the last one. A secret room stays off the map the player 
 walks into it, so its flag is the only thing that keeps it hidden - the name does not.
 
 Stats are strength, wisdom, agility or health, in lower case. Flags are true, false or empty.
-Blank lines are skipped. The map is refused if no exits lead from room 0 to a win room, or if a
-condition needs more of a stat than the starting 10 plus every item on the map can give.
+Blank lines are skipped. The map is refused if no exits lead from room 0 to a win room, if room 0
+has enemies, or if a condition needs more of a stat than the starting 10 plus every item on the map
+can give. A condition is checked only the first time a room is entered.
 
 Example:
 1,Castle Entrance,2,-1,8,0,A nice room, full of nice things.,Shield:health:3;Cursed Amulet:health:-10,Skeleton:15:3:20;Bat:6:8:30,The ground rumbles...,Sword:10:strength:5;Bow:12:agility:10,strength:10:You need to be strong to pry the door;wisdom:5:Looks like you don't know how to handle a crowbar,true,You win!!!,false

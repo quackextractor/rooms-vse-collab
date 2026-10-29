@@ -50,9 +50,22 @@ class MapLoaderTest {
 
     @Test
     void severalEnemiesCanShareARoom() throws Exception {
-        Map<Integer, Room> rooms = load("0,Start,-1,-1,-1,-1,Rats.,,Rat:5:3:25;Rat:5:3:25;Fat Rat:20:10:0,,,,true");
+        Map<Integer, Room> rooms = load("0,Start,1,-1,-1,-1,The start.,,,,,,true",
+                "1,Nest,-1,-1,0,-1,Rats.,,Rat:5:3:25;Rat:5:3:25;Fat Rat:20:10:0");
 
-        assertEquals(3, rooms.get(0).getAvailableEnemies().size());
+        assertEquals(3, rooms.get(1).getAvailableEnemies().size());
+    }
+
+    @Test
+    void anEnemyInTheStartRoomIsRefused() {
+        assertRefused("start room has no room to retreat to", "0,Start,-1,-1,-1,-1,Rats.,,Rat:5:3:25,,,,true");
+    }
+
+    @Test
+    void spacesAroundAnItemAreIgnored() throws Exception {
+        Map<Integer, Room> rooms = load("0,Start,-1,-1,-1,-1,The start.,Scroll:wisdom:5; Potion : health : 30,,,,,true");
+
+        assertEquals("Potion", rooms.get(0).getAvailableItems().get(1).getName());
     }
 
     @Test

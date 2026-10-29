@@ -140,7 +140,7 @@ public class Player implements Serializable {
             return false;
         }
         Room nextRoom = roomMap.get(roomId);
-        Optional<RoomCondition> unmet = nextRoom.unmetCondition(this);
+        Optional<RoomCondition> unmet = discoveredRoomIds.contains(roomId) ? Optional.empty() : nextRoom.unmetCondition(this);
         if (unmet.isPresent()) {
             Logic.printToUser("Cannot enter room: " + unmet.get().getMessage());
             return false;

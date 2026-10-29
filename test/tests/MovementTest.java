@@ -43,6 +43,15 @@ class MovementTest {
     }
 
     @Test
+    void aRoomOnceEnteredStaysOpenAfterDroppingTheItemThatOpenedIt() throws Exception {
+        GameSession game = new GameSession();
+
+        game.play("P", "Book", "E", "D", "Book", "W", "E");
+
+        assertEquals("Library", game.currentRoom());
+    }
+
+    @Test
     void walkingBackReturnsToThePreviousRoom() throws Exception {
         GameSession game = new GameSession();
 

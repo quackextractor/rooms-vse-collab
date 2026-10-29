@@ -6,7 +6,7 @@ import room.Room;
 import java.util.*;
 
 public class MapView {
-    private static final int LABEL_WIDTH = 4;
+    private static final int LABEL_WIDTH = Config.MAP_LABEL_WIDTH;
     private static final int CELL_WIDTH = LABEL_WIDTH + 2;
 
     private MapView() {

@@ -7,6 +7,7 @@ import myExceptions.ParsingLevelException;
 import room.Direction;
 import room.Room;
 import room.RoomCondition;
+import utilities.Config.Column;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -56,22 +57,23 @@ public class MapLoader {
     private static Room parseRoom(String line) throws ParsingLevelException {
         String[] parts = line.split(",(?!\\s)");
 
-        if (parts.length < 6) {
-            throw new ParsingLevelException("Invalid format in the map file, first 6 parameters are mandatory (roomID, room name and the 4 neighboring rooms).");
+        if (parts.length < Config.MANDATORY_COLUMNS) {
+            throw new ParsingLevelException("Invalid format in the map file, the first " + Config.MANDATORY_COLUMNS
+                    + " columns are mandatory (roomID, room name and the 4 neighboring rooms).");
         }
 
-        int id = number(parts[0], "id");
-        String name = parts[1];
-        int north = number(parts[2], "north");
-        int east = number(parts[3], "east");
-        int south = number(parts[4], "south");
-        int west = number(parts[5], "west");
-        String description = column(parts, 6);
-        List<Item> items = parseList(column(parts, 7), "item", "name:stat:value",
+        int id = number(parts, Column.ID);
+        String name = column(parts, Column.NAME);
+        int north = number(parts, Column.NORTH);
+        int east = number(parts, Column.EAST);
+        int south = number(parts, Column.SOUTH);
+        int west = number(parts, Column.WEST);
+        String description = column(parts, Column.DESCRIPTION);
+        List<Item> items = parseList(column(parts, Column.ITEMS), "item", "name:stat:value",
                 fields -> new Item(fields[0], statOf(fields[1], fields[2])));
-        List<Enemy> enemies = parseList(column(parts, 8), "enemy", "name:health:strength:agility",
+        List<Enemy> enemies = parseList(column(parts, Column.ENEMIES), "enemy", "name:health:strength:agility",
                 fields -> new Enemy(fields[0], Integer.parseInt(fields[1]), Integer.parseInt(fields[2]), Integer.parseInt(fields[3])));
-        String warningMessage = column(parts, 9);
+        String warningMessage = column(parts, Column.WARNING_MESSAGE);
 
         if (warningMessage.matches("[^:;]+:\\d+:\\d+:\\d+(;[^:;]+:\\d+:\\d+:\\d+)*")) {
             throw new ParsingLevelException("The warning message is an enemy definition: \""
@@ -79,30 +81,32 @@ public class MapLoader {
                     + " too many before it - every column after that is shifted by one.");
         }
 
-        List<Weapon> weapons = parseList(column(parts, 10), "weapon", "name:damage:stat:value",
+        List<Weapon> weapons = parseList(column(parts, Column.WEAPONS), "weapon", "name:damage:stat:value",
                 fields -> new Weapon(fields[0], Integer.parseInt(fields[1]), statOf(fields[2], fields[3])));
-        List<RoomCondition> conditions = parseList(column(parts, 11), "condition", "stat:value:message",
+        List<RoomCondition> conditions = parseList(column(parts, Column.CONDITIONS), "condition", "stat:value:message",
                 fields -> new RoomCondition(knownStat(fields[0]), Integer.parseInt(fields[1]), fields[2]));
-        boolean isWinRoom = flag(column(parts, 12), "isWinRoom");
-        String winMessage = column(parts, 13);
-        boolean isSecret = flag(column(parts, 14), "isSecret");
+        boolean isWinRoom = flag(parts, Column.IS_WIN_ROOM);
+        String winMessage = column(parts, Column.WIN_MESSAGE);
+        boolean isSecret = flag(parts, Column.IS_SECRET);
 
         return new Room(id, name, description, items, enemies, warningMessage, weapons, conditions, north, east, south, west, isWinRoom, winMessage, isSecret);
     }
 
-    private static String column(String[] parts, int index) {
-        return parts.length > index ? parts[index] : "";
+    private static String column(String[] parts, Column column) {
+        return parts.length > column.ordinal() ? parts[column.ordinal()] : "";
     }
 
-    private static int number(String value, String columnName) throws ParsingLevelException {
+    private static int number(String[] parts, Column column) throws ParsingLevelException {
+        String value = column(parts, column);
         try {
             return Integer.parseInt(value.trim());
         } catch (NumberFormatException e) {
-            throw new ParsingLevelException("Column " + columnName + " must be a whole number, not \"" + value + "\".");
+            throw new ParsingLevelException("Column " + column + " must be a whole number, not \"" + value + "\".");
         }
     }
 
-    private static boolean flag(String value, String columnName) throws ParsingLevelException {
+    private static boolean flag(String[] parts, Column column) throws ParsingLevelException {
+        String value = column(parts, column);
         String flag = value.trim().toLowerCase();
         if (flag.isEmpty() || flag.equals("false")) {
             return false;
@@ -110,7 +114,7 @@ public class MapLoader {
         if (flag.equals("true")) {
             return true;
         }
-        throw new ParsingLevelException("Column " + columnName + " must be true or false, not \"" + value + "\".");
+        throw new ParsingLevelException("Column " + column + " must be true or false, not \"" + value + "\".");
     }
 
     private static String knownStat(String stat) {
@@ -132,7 +136,7 @@ public class MapLoader {
 
         int fieldCount = format.split(":").length;
         for (String entry : column.split(";")) {
-            String[] fields = entry.split(":", fieldCount);
+            String[] fields = Arrays.stream(entry.split(":", fieldCount)).map(String::trim).toArray(String[]::new);
             String problem = "Invalid " + kind + " \"" + entry + "\", expected " + format + ".";
             if (fields.length < fieldCount || Arrays.stream(fields).anyMatch(String::isBlank)) {
                 throw new ParsingLevelException(problem);
@@ -149,6 +153,10 @@ public class MapLoader {
     private static void validateLinks(Map<Integer, Room> roomMap) throws ParsingLevelException {
         if (!roomMap.containsKey(Config.START_ROOM_ID)) {
             throw new ParsingLevelException("The map has no room " + Config.START_ROOM_ID + ", which is where the game starts.");
+        }
+        if (!roomMap.get(Config.START_ROOM_ID).getAvailableEnemies().isEmpty()) {
+            throw new ParsingLevelException("Room " + Config.START_ROOM_ID
+                    + " has enemies, but the start room has no room to retreat to.");
         }
         for (Room room : roomMap.values()) {
             for (Direction direction : Direction.values()) {
