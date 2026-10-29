@@ -37,5 +37,5 @@ foreach ($name in $installed) {
     Write-Host "[OK]   installed $target"
 }
 
-Write-Host "[INFO] pre-commit runs scripts/build.sh and scripts/test.sh and refuses the commit if either fails."
+Write-Host "[INFO] pre-commit runs 'mvnw test' and refuses the commit if the build or the tests fail."
 Write-Host "[INFO] remove the hook with: Remove-Item .git/hooks/pre-commit"

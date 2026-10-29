@@ -1,6 +1,7 @@
 # sh cannot run a script with CRLF in its shebang.
 hooks/*   text eol=lf
-scripts/* text eol=lf
+mvnw      text eol=lf
 
 # cmd.exe needs CRLF, and the release is built on Linux.
 play.cmd text eol=crlf
+mvnw.cmd text eol=crlf

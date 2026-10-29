@@ -18,17 +18,10 @@ cd "$repo_root"
 
 echo "[INFO] building and testing"
 
-if ! sh scripts/build.sh; then
+if ! sh ./mvnw -q -B -ntp test; then
     echo ""
-    echo "[ERROR] the build failed. The commit was not made."
-    echo "        Fix it, or run 'sh scripts/build.sh' on its own to see the compiler's output."
-    exit 1
-fi
-
-if ! sh scripts/test.sh; then
-    echo ""
-    echo "[ERROR] the tests failed. The commit was not made."
-    echo "        Run 'sh scripts/test.sh' on its own and read out/test/test.log."
+    echo "[ERROR] the build or the tests failed. The commit was not made."
+    echo "        Run 'sh mvnw test' on its own and read target/surefire-reports."
     exit 1
 fi
 

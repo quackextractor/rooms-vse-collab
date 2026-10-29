@@ -7,8 +7,8 @@ A small text adventure in Java. Explore rooms, fight enemies, collect items and 
 ## Play
 
 ```bash
-sh scripts/build.sh
-java -cp out/classes Main
+sh mvnw package
+java -jar target/rooms.jar
 ```
 
 Or download a release zip and double-click `play.cmd` (`java -jar rooms.jar` from a terminal also works; double-clicking the jar itself does not, because it gets no terminal to read from).
@@ -37,6 +37,11 @@ Pushing to `master` publishes: `.github/workflows/release.yml` builds `rooms.jar
 
 ## Build
 
-`sh scripts/build.sh` compiles, `sh scripts/test.sh` runs the JUnit tests, `sh scripts/package.sh` builds the release zip. Plain JDK tools, no Gradle or Maven. Run `install-hooks.ps1` once per clone.
+Maven, through the wrapper, so only a JDK 17+ is needed (`mvnw.cmd` on Windows without Git Bash):
+
+- `sh mvnw test` compiles and runs the JUnit tests.
+- `sh mvnw package` also builds `target/rooms.jar` and the release zip `target/rooms.zip`.
+
+IntelliJ opens the project from `pom.xml`. Run `install-hooks.ps1` once per clone.
 
 MIT licensed.
